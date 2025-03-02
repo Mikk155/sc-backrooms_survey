@@ -94,7 +94,7 @@ class CWeaponCamera : ScriptBasePlayerWeaponEntity
 
     void picture_watch( CTextMenu@ menu, CBasePlayer@ player, int iSlot, const CTextMenuItem@ item )
     {
-        if( player !is null )
+        if( player !is null && item !is null )
         {
             string item_name;
             item.m_pUserData.retrieve( item_name );
