@@ -32,6 +32,7 @@ void MapInit()
     // Initialize player-basis arrays
     for( int i = 0; i < g_Engine.maxClients; i++ ) {
         trigger_cameras.insertLast( EHandle(null) );
+        render_individuals.insertLast( EHandle(null) );
         menus.insertLast( null );
     }
 
