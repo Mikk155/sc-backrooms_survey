@@ -12,17 +12,28 @@
 *       - Mikk155 - Author -
 */
 
-#include "entities/CWeapomCamera"
-#include "entities/CTriggerInformation"
+#include "utils"
+#include "entities/CWeaponCamera"
+#include "entities/CEnvironmentInformation"
 
 void MapInit()
 {
-    g_CustomEntityFuncs.RegisterCustomEntity( "CTriggerInformation", "trigger_information" );
+    g_CustomEntityFuncs.RegisterCustomEntity( "CEnvironmentInformation", "env_info" );
 
-    g_CustomEntityFuncs.RegisterCustomEntity( "CWeapomCamera", "weapon_camera" );
-    g_ItemRegistry.RegisterWeapon( "weapon_camera", "backgrooms/", String::EMPTY_STRING, "357", String::EMPTY_STRING, "ammo_357" );
+    g_CustomEntityFuncs.RegisterCustomEntity( "CWeaponCamera", "weapon_camera" );
+    g_ItemRegistry.RegisterWeapon( "weapon_camera", "backgrooms/", "357", "", "ammo_357" );
 
     g_Hooks.RegisterHook( Hooks::Player::PlayerSpawn, @on_playerspawn );
+
+#if SERVER
+    g_Game .PrecacheModel( "sprites/glow01.spr" );
+#endif
+
+    // Initialize player-basis arrays
+    for( int i = 0; i < g_Engine.maxClients; i++ ) {
+        trigger_cameras.insertLast( EHandle(null) );
+        menus.insertLast( null );
+    }
 }
 
 void MapStart()

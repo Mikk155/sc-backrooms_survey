@@ -1,0 +1,3 @@
+This is a Black-Mesa's func_recharge entity.
+
+This entity will increase the player's armor when pressing and holding E onto it until the entity's juice runs out.

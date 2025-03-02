@@ -12,16 +12,17 @@
 *       - Mikk155 - Author -
 */
 
-class CTriggerInformation : ScriptBaseEntity
+class CEnvironmentInformation : ScriptBaseEntity
 {
     string buffer;
+    string name;
 
     bool KeyValue( const string& in key, const string& in value )
     {
         if( key == "text_file" )
         {
             string szpath;
-            snprintf( szpath, "scripts/maps/backrooms_survey/%1.txt", value );
+            snprintf( szpath, "scripts/maps/backrooms_survey/data/%1.txt", value );
 
             auto file = g_FileSystem.OpenFile( szpath, OpenFile::READ );
 
@@ -35,11 +36,16 @@ class CTriggerInformation : ScriptBaseEntity
                 }
             }
         }
+        else if( key == "name" )
+        {
+            name = value;
+        }
         return true;
     }
 
     void Spawn()
     {
-        g_Game.AlertMessage( at_console, buffer + '\n' );
+        information_entities.insertLast( EHandle( self ) );
+        g_Game.AlertMessage( at_console, "Inserted env_info entity %1 as %2 with data:\n%3\n", self.edict(), name, buffer );
     }
 }
