@@ -28,12 +28,32 @@ CBaseEntity@ get_camera( int index )
 
     dictionary keyvalue_data;
 
-    // -TODO Required keyvalues on keyvalue_data for trigger_camera
+    // Targets to trigger when a player starts or stops using a camera
+//    keyvalue_data[ "m_iszTargetWhenPlayerStartsUsing" ] = "";
+//    keyvalue_data[ "m_iszTargetWhenPlayerStopsUsing" ] = "";
+// -TODO Maybe Raptor could use these?
+
+    keyvalue_data[ "max_player_count" ] = "1";
+    keyvalue_data[ "hud_health" ] = "1";
+    keyvalue_data[ "hud_flashlight" ] = "1";
+    keyvalue_data[ "hud_weapons" ] = "1";
+/*
+    keyvalue_data[ "mouse_action_0_0" ] = "255";
+    keyvalue_data[ "mouse_action_0_1" ] = "255";
+    keyvalue_data[ "mouse_action_1_0" ] = "255";
+    keyvalue_data[ "mouse_action_1_1" ] = "255";
+    keyvalue_data[ "mouse_action_2_0" ] = "255";
+    keyvalue_data[ "mouse_action_2_1" ] = "255";
+*/
+    keyvalue_data[ "wait" ] = "10";
 
     auto camera = g_EntityFuncs.CreateEntity( "trigger_camera", keyvalue_data, true );
 
     if( camera !is null )
     {
+        camera.pev.spawnflags |= 4; // Freeze Player
+        camera.pev.spawnflags |= 256; // Player Invulnerable
+
         trigger_cameras[ index - 1 ] = EHandle( camera );
         return @camera;
     }
