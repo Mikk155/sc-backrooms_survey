@@ -12,6 +12,8 @@
 *       - Mikk155 - Author -
 */
 
+#include "utils/CLogger"
+
 #include "utils"
 
 #include "entities/CEnvironmentInformation"
