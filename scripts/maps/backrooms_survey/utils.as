@@ -72,6 +72,14 @@ void apply_rendering( CBasePlayer@ player, const string &in target, bool enable,
     apply_rendering( player, target, enable, rendermode, renderamt, renderfx, rendercolor );
 }
 
+void remove_rendering( int index_player, string target )
+{
+    auto player = g_PlayerFuncs.FindPlayerByIndex( index_player );
+
+    if( player !is null )
+        apply_rendering( player, target, false );
+}
+
 void apply_rendering( CBasePlayer@ player, CBaseEntity@ target, bool enable, int rendermode = -1, float renderamt = -1, int renderfx = -1, Vector rendercolor = Vector( -1, -1, -1 ) )
 {
     if( target !is null )

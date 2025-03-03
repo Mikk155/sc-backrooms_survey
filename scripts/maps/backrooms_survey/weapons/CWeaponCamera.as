@@ -125,6 +125,7 @@ class CWeaponCamera : ScriptBasePlayerWeaponEntity
                         if( env_info.pev.target != "" )
                         {
                             apply_rendering( player, env_info.pev.target, true, env_info.target_rendermode, env_info.target_renderamt, env_info.target_renderfx, env_info.target_rendercolor );
+                            g_Scheduler.SetTimeout( "remove_rendering", 10.0f, player.entindex(), string(env_info.pev.target) );
                         }
 
                         hud_msg.holdTime = 10.0f;

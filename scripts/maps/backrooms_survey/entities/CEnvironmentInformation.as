@@ -103,6 +103,11 @@ class CEnvironmentInformation : ScriptBaseEntity
 
     void Spawn()
     {
+        self.pev.solid = SOLID_NOT;
+        self.pev.movetype = MOVETYPE_NONE;
+
+        g_EntityFuncs.SetOrigin( self, self.pev.origin );
+
         information_entities.insertLast( EHandle( self ) );
         g_Game.AlertMessage( at_console, "Inserted env_info entity %1 as %2 with data:\n%3\n", self.edict(), name, buffer );
     }
