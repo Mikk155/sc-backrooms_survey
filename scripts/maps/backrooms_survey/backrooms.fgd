@@ -62,3 +62,15 @@
     sprite_renderamt(integer) : "[Sprite] FX Amount (1 - 255)"
     sprite_rendercolor(color255) : "[Sprite] FX Color (R G B)"
 ]
+
+@PointClass = info_vanisher_destination : "npc vanisher's destinations"
+[
+    targetname(target_source) : "Targetname"
+
+    spawnflags(Flags) =
+    [
+        1: "Start Off" : 0
+    ]
+
+    target(string) : "Fire on teleport" : "Pass player as activator and this entity as caller."
+]

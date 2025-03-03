@@ -16,16 +16,22 @@
 
 #include "entities/CEnvironmentInformation"
 
+#include "npcs/vanisher"
+
 #include "weapons/CWeaponCamera"
 
 void MapInit()
 {
     g_CustomEntityFuncs.RegisterCustomEntity( "CEnvironmentInformation", "env_info" );
 
+    g_CustomEntityFuncs.RegisterCustomEntity( "CNPCVaisher", "npc_vanisher" );
+    g_CustomEntityFuncs.RegisterCustomEntity( "CVanisherTargets", "info_vanisher_destination" );
+
     g_CustomEntityFuncs.RegisterCustomEntity( "CWeaponCamera", "weapon_camera" );
     g_ItemRegistry.RegisterWeapon( "weapon_camera", "backgrooms/", "357", "", "ammo_357" );
 
     g_Hooks.RegisterHook( Hooks::Player::PlayerSpawn, @on_playerspawn );
+    g_Hooks.RegisterHook( Hooks::Player::PlayerTakeDamage, @on_playertakedamage );
 
 #if SERVER
     g_Game .PrecacheModel( "sprites/glow01.spr" );
@@ -66,5 +72,38 @@ HookReturnCode on_playerspawn( CBasePlayer@ player )
         player.GiveNamedItem( "weapon_camera", 0, 5 );
     }
 
+    return HOOK_CONTINUE;
+}
+
+HookReturnCode on_playertakedamage( DamageInfo@ pDamageInfo )
+{
+    auto victim = ( pDamageInfo.pVictim !is null ? cast<CBasePlayer@>( pDamageInfo.pVictim ) : null );
+    auto attacker = ( pDamageInfo.pAttacker !is null ? pDamageInfo.pAttacker : pDamageInfo.pInflictor );
+    auto inflictor = ( pDamageInfo.pInflictor !is null ? pDamageInfo.pInflictor : pDamageInfo.pAttacker );
+    auto damage = pDamageInfo.flDamage;
+    auto bits = pDamageInfo.bitsDamageType;
+
+    if( victim is null )
+        return HOOK_CONTINUE;
+
+    if( attacker !is null )
+    {
+        if( attacker.pev.targetname == "npc_vanisher" )
+        {
+            auto vanisher = g_EntityFuncs.FindEntityByClassname( null, "npc_vanisher" );
+
+            try
+            {
+                cast<CNPCVaisher@>( CastToScriptClass( vanisher ) ).attack( victim );
+            }
+            catch
+            {
+                g_EntityFuncs.Remove( vanisher );
+            }
+
+            pDamageInfo.flDamage = 0;
+            return HOOK_CONTINUE;
+        }
+    }
     return HOOK_CONTINUE;
 }
