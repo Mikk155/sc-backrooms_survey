@@ -122,8 +122,13 @@ class CWeaponCamera : ScriptBasePlayerWeaponEntity
                             camera.Use( player, player, USE_ON, 0 );
                         }
 
-                        g_PlayerFuncs.ClientPrint( player, HUD_PRINTTALK, env_info.buffer );
-                        // -TODO HudTextMessage
+                        if( env_info.pev.target != "" )
+                        {
+                            apply_rendering( player, env_info.pev.target, true, env_info.target_rendermode, env_info.target_renderamt, env_info.target_renderfx, env_info.target_rendercolor );
+                        }
+
+                        hud_msg.holdTime = 10.0f;
+                        g_PlayerFuncs.HudMessage( player, hud_msg, env_info.buffer );
                     }
                 }
             }
@@ -254,24 +259,25 @@ class CWeaponCamera : ScriptBasePlayerWeaponEntity
 
             if( total_distance < 1000 && angle_yaw <= 60.0 && angle_upd <= 50.0 )
             {
-                CPicture@ picture = CPicture( player.pev.origin, player.pev.v_angle, ehandle );
+                CPicture@ picture = CPicture( player.pev.origin + player.pev.view_ofs, player.pev.v_angle, ehandle );
 
                 if( picture !is null )
                 {
                     pictured_entities[ env_info.name ] = @picture;
                     user_data[ "pictures" ] = pictured_entities;
 
-#if SERVER
-                    auto spr = g_EntityFuncs.CreateSprite( "sprites/glow01.spr", entity.pev.origin, true );
-
-                    if( spr !is null )
+                    if( ( entity.pev.spawnflags & 2 ) == 0 ) // Don't draw glow sprite.
                     {
-                        spr.AnimateAndDie( 2.0f );
-                        spr.pev.rendermode = kRenderGlow;
-                        spr.pev.renderamt = 255;
-                        spr.pev.rendercolor = Vector( 255, 0, 0 );
+                        auto spr = g_EntityFuncs.CreateSprite( ( env_info.glow_sprite != "" ? env_info.glow_sprite : "sprites/glow01.spr" ), entity.pev.origin, true );
+
+                        if( spr !is null )
+                        {
+                            spr.AnimateAndDie( env_info.sprite_framerate);
+                            spr.pev.rendermode = env_info.sprite_rendermode;
+                            spr.pev.renderamt = env_info.sprite_renderamt;
+                            spr.pev.rendercolor = env_info.sprite_rendercolor;
+                        }
                     }
-#endif
                 }
             }
         }

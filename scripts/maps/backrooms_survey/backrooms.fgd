@@ -1,0 +1,64 @@
+@PointClass = env_info : "environment information"
+[
+    targetname(target_source) : "Targetname"
+
+    spawnflags(Flags) =
+    [
+        1: "Start Off" : 0
+        2: "Don't show glow sprite" : 0
+    ]
+
+    text_file(string) : "Information" : "If the string ends with '.txt' it will open a external file located in scripts/maps/backrooms_survey/data/ with the given name."
+    target(string) : "[Target] Entity to render when picturing" : "This uses env_render_individual to apply specific rendering settings"
+    target_rendermode(choices) : "[Target] Render Mode" : -1 =
+    [
+        -1 : "Don't apply anything"
+        0: "Normal"
+        1: "Color"
+        2: "Texture"
+        3: "Glow"
+        4: "Solid"
+        5: "Additive"
+    ]
+    target_renderamt(integer) : "[Target] FX Amount (1 - 255)"
+    target_rendercolor(color255) : "[Target] FX Color (R G B)"
+    target_renderfx(choices) : "[Target] Render FX" : -1 =
+    [
+        -1 : "Don't apply anything"
+        0: "Normal"
+        1: "Slow Pulse"
+        2: "Fast Pulse"
+        3: "Slow Wide Pulse"
+        4: "Fast Wide Pulse"
+        9: "Slow Strobe"
+        10: "Fast Strobe"
+        11: "Faster Strobe"
+        12: "Slow Flicker"
+        13: "Fast Flicker"
+        5: "Slow Fade Away"
+        6: "Fast Fade Away"
+        7: "Slow Become Solid"
+        8: "Fast Become Solid"
+        14: "Constant Glow"
+        15: "Distort"
+        16: "Hologram (Distort + fade)"
+        17: "Dead Player (DONT USE!)"
+        18: "Explode (Garg Like)"
+        19: "Glow Shell"
+        20: "ClampMinScale (Sprites)"
+    ]
+
+    glow_sprite(sprite) : "[Sprite] Sprite Name" : "" : "Custom sprite to display at position. if empty will use sprites/glow01.spr"
+    sprite_rendermode(choices) : "[Sprite] Render Mode" : -1 =
+    [
+        -1 : "Don't apply anything"
+        0: "Normal"
+        1: "Color"
+        2: "Texture"
+        3: "Glow"
+        4: "Solid"
+        5: "Additive"
+    ]
+    sprite_renderamt(integer) : "[Sprite] FX Amount (1 - 255)"
+    sprite_rendercolor(color255) : "[Sprite] FX Color (R G B)"
+]
