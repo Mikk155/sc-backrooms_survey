@@ -13,8 +13,10 @@
 */
 
 #include "utils"
-#include "entities/CWeaponCamera"
+
 #include "entities/CEnvironmentInformation"
+
+#include "weapons/CWeaponCamera"
 
 void MapInit()
 {
