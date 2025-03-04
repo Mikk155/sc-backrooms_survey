@@ -68,6 +68,7 @@ namespace camera
         float m_nightvision_battery;
 
         sprint_state m_sprint_state;
+        float m_flNextSprintTime;
 
         private CBasePlayer@ m_hPlayer
         {
@@ -136,49 +137,26 @@ namespace camera
             if( self.m_flTimeWeaponIdle > g_Engine.time || player is null )
                 return;
 
-            if( m_sprint_state == sprint_state::sprint_no )
+            switch( Math.RandomLong( 0, 3 ) )
             {
-                if( player.pev.velocity.Make2D().Length() > 100 )
-                {
-                    self.SendWeaponAnim( CoFCAMERA_SPRINT_TO, 0, 0 );
-                    m_sprint_state = sprint_state::sprint_start;
-                    self.m_flTimeWeaponIdle = g_Engine.time + 0.5f;
-                }
-                else
-                {
-                    switch( Math.RandomLong( 0, 3 ) )
-                    {
-                        case 1:
-                            self.SendWeaponAnim( CoFCAMERA_FIDGET1, 0, 0 );
-                        break;
+                case 1:
+                    self.SendWeaponAnim( CoFCAMERA_FIDGET1, 0, 0 );
+                break;
 
-                        case 2:
-                            self.SendWeaponAnim( CoFCAMERA_FIDGET2, 0, 0 );
-                        break;
+                case 2:
+                    self.SendWeaponAnim( CoFCAMERA_FIDGET2, 0, 0 );
+                break;
 
-                        case 3:
-                            self.SendWeaponAnim( CoFCAMERA_FIDGET3, 0, 0 );
-                        break;
+                case 3:
+                    self.SendWeaponAnim( CoFCAMERA_FIDGET3, 0, 0 );
+                break;
 
-                        default:
-                            self.SendWeaponAnim( CoFCAMERA_IDLE, 0, 0 );
-                        break;
-                    }
-
-                    self.m_flTimeWeaponIdle = g_Engine.time + g_PlayerFuncs.SharedRandomFloat( player.random_seed, 2, 4 );
-                }
+                default:
+                    self.SendWeaponAnim( CoFCAMERA_IDLE, 0, 0 );
+                break;
             }
-            else if( m_sprint_state == sprint_state::sprint_start )
-            {
-                self.SendWeaponAnim( CoFCAMERA_SPRINT_IDLE, 0, 0 );
-                m_sprint_state = sprint_state::sprint_loop;
-                self.m_flTimeWeaponIdle = g_Engine.time + 0.5f;
-            }
-            else if( player.pev.velocity.Make2D().Length() > 100 )
-            {
-                self.SendWeaponAnim( CoFCAMERA_SPRINT_IDLE, 0, 0 );
-                self.m_flTimeWeaponIdle = g_Engine.time + 0.65f;
-            }
+
+            self.m_flTimeWeaponIdle = g_Engine.time + g_PlayerFuncs.SharedRandomFloat( player.random_seed, 2, 4 );
         }
 
         void picture_watch( CTextMenu@ menu, CBasePlayer@ player, int iSlot, const CTextMenuItem@ item )
@@ -309,15 +287,40 @@ namespace camera
             if( player is null )
                 return;
 
-            if( m_sprint_state == sprint_state::sprint_no && player.pev.velocity.Make2D().Length() > 100 ) {
-                self.SendWeaponAnim( CoFCAMERA_SPRINT_TO, 0, 0 );
-                m_sprint_state = sprint_state::sprint_start;
-                self.m_flTimeWeaponIdle = g_Engine.time + 0.01f;
+            bool on_ground = ( ( player.pev.flags & FL_ONGROUND ) != 0 );
+
+            if( g_Engine.time > m_flNextSprintTime && on_ground )
+            {
+                if( m_sprint_state == sprint_state::sprint_no )
+                {
+                    if( player.pev.velocity.Make2D().Length() > 100 )
+                    {
+                        self.SendWeaponAnim( CoFCAMERA_SPRINT_TO, 0, 0 );
+                        m_sprint_state = sprint_state::sprint_start;
+                        m_flNextSprintTime = g_Engine.time + 0.3f;
+                        self.m_flTimeWeaponIdle = g_Engine.time + 1.0f;
+                    }
+                }
+                else if( m_sprint_state == sprint_state::sprint_start )
+                {
+                    self.SendWeaponAnim( CoFCAMERA_SPRINT_IDLE, 0, 0 );
+                    m_sprint_state = sprint_state::sprint_loop;
+                    m_flNextSprintTime = g_Engine.time + 0.5f;
+                    self.m_flTimeWeaponIdle = g_Engine.time + 1.0f;
+                }
+                else if( player.pev.velocity.Make2D().Length() > 100 )
+                {
+                    self.SendWeaponAnim( CoFCAMERA_SPRINT_IDLE, 0, 0 );
+                    m_flNextSprintTime = g_Engine.time + 0.65f;
+                    self.m_flTimeWeaponIdle = g_Engine.time + 1.0f;
+                }
             }
-            else if( m_sprint_state == sprint_state::sprint_loop &&  player.pev.velocity.Make2D().Length() <= 100 ) {
+            else if( m_sprint_state == sprint_state::sprint_loop && ( player.pev.velocity.Make2D().Length() <= 100 || !on_ground ) )
+            {
                 self.SendWeaponAnim( CoFCAMERA_SPRINT_FROM, 0, 0 );
                 m_sprint_state = sprint_state::sprint_no;
-                self.m_flTimeWeaponIdle = g_Engine.time + 0.5f;
+                m_flNextSprintTime = g_Engine.time + 0.5f;
+                self.m_flTimeWeaponIdle = g_Engine.time + 1.0f;
             }
 
             if( m_nightvision )
