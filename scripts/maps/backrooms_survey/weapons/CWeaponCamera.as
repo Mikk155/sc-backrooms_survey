@@ -65,7 +65,8 @@ namespace camera
         float m_flNextPictureTime;
 
         bool m_nightvision;
-        float m_nightvision_battery;
+        float m_nightvision_battery = 10000.0f;
+        int m_nightvision_radius;
 
         sprint_state m_sprint_state;
         float m_flNextSprintTime;
@@ -128,6 +129,15 @@ namespace camera
         void Holster( int skiplocal = 0 )
         {
             m_sprint_state = sprint_state::sprint_no;
+            m_nightvision = false;
+            m_nightvision_radius = 0;
+
+            auto player = m_hPlayer;
+
+            if( player is null )
+                return;
+
+            g_PlayerFuncs.ScreenFade( player, Vector( 0, 200, 20 ), 1.0f, 0.5f, 255.0f, FFADE_MODULATE );
         }
 
         void WeaponIdle()
@@ -271,21 +281,11 @@ namespace camera
                 }
                 else
                 {
-                    g_PlayerFuncs.ClientPrint( player, HUD_PRINTTALK, "There are not any useful picture yet.\n" );
+                    hud_msg.holdTime = 5.0f;
+                    g_PlayerFuncs.HudMessage( player, hud_msg, "There are not any useful picture yet.\n" );
                     m_flNextPictureTime = g_Engine.time + 0.5f;
-                    // -TODO HudTextMessage
                 }
             }
-
-            BaseClass.ItemPreFrame();
-        }
-
-        void ItemPostFrame()
-        {
-            auto player = m_hPlayer;
-
-            if( player is null )
-                return;
 
             bool on_ground = ( ( player.pev.flags & FL_ONGROUND ) != 0 );
 
@@ -325,11 +325,36 @@ namespace camera
 
             if( m_nightvision )
             {
-                g_PlayerFuncs.ScreenFade( player, Vector( 0, 255, 0 ), 0, 1, 0, FFADE_OUT | FFADE_MODULATE );
+                if( m_nightvision_radius <= 40 ) {
+                    m_nightvision_radius++;
+                }
+
+                NetworkMessage m( MSG_ONE, NetworkMessages::SVC_TEMPENTITY, player.edict() );
+                    m.WriteByte( TE_DLIGHT );
+                    m.WriteCoord(player.pev.origin.x);
+                    m.WriteCoord(player.pev.origin.y);
+                    m.WriteCoord(player.pev.origin.z);
+                    m.WriteByte(m_nightvision_radius);
+                    m.WriteByte(255);
+                    m.WriteByte(255);
+                    m.WriteByte(255);
+                    m.WriteByte(2);
+                    m.WriteByte(1);
+                m.End();
+
                 m_nightvision_battery--;
+
+                hud_msg.holdTime = 0.5f;
+                g_PlayerFuncs.HudMessage( player, hud_msg, m_nightvision_battery );
+
+                if( m_nightvision_battery <= 0 )
+                {
+                    self.SecondaryAttack();
+                    self.m_iClip--;
+                }
             }
 
-            BaseClass.ItemPostFrame();
+            BaseClass.ItemPreFrame();
         }
 
         void PrimaryAttack()
@@ -442,12 +467,15 @@ namespace camera
             if( m_nightvision )
             {
                 self.SendWeaponAnim( CoFCAMERA_HOLSTER );
+                g_PlayerFuncs.ScreenFade( player, Vector( 0, 200, 20 ), 1.0f, 0.5f, 100.0f, FFADE_STAYOUT | FFADE_MODULATE | FFADE_OUT );
                 g_SoundSystem.EmitSoundDyn( player.edict(), CHAN_WEAPON, "cof/guns/camera/charge.ogg", VOL_NORM, ATTN_NORM, 0, PITCH_NORM );
                 self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 1.0f;
             }
             else
             {
+                m_nightvision_radius = 0;
                 self.SendWeaponAnim( CoFCAMERA_DRAW_FIRST );
+                g_PlayerFuncs.ScreenFade( player, Vector( 0, 200, 20 ), 1.0f, 0.5f, 100.0f, FFADE_MODULATE );
                 g_SoundSystem.EmitSoundDyn( player.edict(), CHAN_WEAPON, "cof/guns/camera/lever.ogg", VOL_NORM, ATTN_NORM, 0, PITCH_NORM );
                 self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 1.63f;
             }
@@ -470,7 +498,7 @@ namespace camera
 
             ammo--;
             self.m_iClip = 1;
-            m_nightvision_battery = 100.0f;
+            m_nightvision_battery = 10000.0f;
             player.m_rgAmmo( self.m_iPrimaryAmmoType, ammo );
 
             self.SendWeaponAnim( CoFCAMERA_SHOOT );
