@@ -10,6 +10,8 @@
 *
 *   Credits:
 *       - Mikk155 - Author -
+*       - KernCore91 - Some functionality -
+*           - https://github.com/KernCore91/-SC-Cry-of-Fear-Weapons-Project/blob/master/scripts/maps/cof/special/weapon_cofcamera.as
 */
 
 namespace camera
@@ -34,19 +36,28 @@ namespace camera
 
     enum camera_anim
     {
-        PYTHON_IDLE1 = 0,
-        PYTHON_FIDGET,
-        PYTHON_FIRE1,
-        PYTHON_RELOAD,
-        PYTHON_HOLSTER,
-        PYTHON_DRAW,
-        PYTHON_IDLE2,
-        PYTHON_IDLE3
+        CoFCAMERA_IDLE = 0,
+        CoFCAMERA_DRAW_FIRST,
+        CoFCAMERA_HOLSTER,
+        CoFCAMERA_SHOOT,
+        CoFCAMERA_FIDGET1,
+        CoFCAMERA_JUMP_TO,
+        CoFCAMERA_JUMP_FROM,
+        CoFCAMERA_DRAW,
+        CoFCAMERA_FIDGET2,
+        CoFCAMERA_FIDGET3,
+        CoFCAMERA_SPRINT_TO,
+        CoFCAMERA_SPRINT_IDLE,
+        CoFCAMERA_SPRINT_FROM,
+        CoFCAMERA_MELEE 
     };
 
     class CWeaponCamera : ScriptBasePlayerWeaponEntity
     {
         float m_flNextPictureTime;
+
+        bool m_nightvision;
+        float m_nightvision_battery;
 
         private CBasePlayer@ m_hPlayer
         {
@@ -56,21 +67,9 @@ namespace camera
 
         void Spawn()
         {
-            Precache();
-            g_EntityFuncs.SetModel( self, "models/w_medkit.mdl" );
+            g_EntityFuncs.SetModel( self, "models/cof/camera/wld.mdl" );
             self.m_iDefaultAmmo = 5;
             self.FallInit();
-        }
-
-        void Precache()
-        {
-            self.PrecacheCustomModels();
-            g_Game.PrecacheModel( "models/w_medkit.mdl" );
-            g_Game.PrecacheModel( "models/v_357.mdl" );
-            g_Game.PrecacheModel( "models/p_medkit.mdl" );
-
-            string sprite;
-            snprintf( sprite, "sprites/backrooms/%1/.txt", pev.classname );
         }
 
         bool GetItemInfo( ItemInfo& out info )
@@ -96,18 +95,52 @@ namespace camera
             if( player is null )
                 return false;
 
-            player.pev.viewmodel = self.GetV_Model( "models/v_357.mdl" );
-            player.pev.weaponmodel = self.GetP_Model( "models/p_medkit.mdl" );
+            auto user_data = player.GetUserData();
 
-            player.set_m_szAnimExtension( "python" );
+            if( !user_data.exists( "pictures" ) )
+                user_data[ "pictures" ] = dictionary();
 
-    //        pev.body = g_ModelFuncs.SetBodygroup( g_ModelFuncs.ModelIndex( "models/v_357.mdl" ), pev.body, 0, 0 );
-            self.SendWeaponAnim( PYTHON_DRAW, 0, pev.body );
+            player.pev.viewmodel = self.GetV_Model( "models/cof/camera/vwm.mdl" );
+            player.pev.weaponmodel = self.GetP_Model( "models/cof/camera/wld.mdl" );
+
+            player.set_m_szAnimExtension( "trip" );
+
+    //        pev.body = g_ModelFuncs.SetBodygroup( g_ModelFuncs.ModelIndex( "models/cof/camera/vwm.mdl" ), pev.body, 0, 0 );
+            self.SendWeaponAnim( CoFCAMERA_DRAW, 0, pev.body );
 
             player.m_flNextAttack = 0;
             self.m_flNextPrimaryAttack = self.m_flTimeWeaponIdle = self.m_flNextSecondaryAttack = g_Engine.time + 0.2;
 
             return true;
+        }
+
+        void WeaponIdle()
+        {
+            auto player = m_hPlayer;
+
+            if( self.m_flTimeWeaponIdle > g_Engine.time || player is null )
+                return;
+
+            switch( Math.RandomLong( 0, 3 ) )
+            {
+                case 1:
+                    self.SendWeaponAnim( CoFCAMERA_FIDGET1, 0, 0 );
+                break;
+
+                case 2:
+                    self.SendWeaponAnim( CoFCAMERA_FIDGET2, 0, 0 );
+                break;
+
+                case 3:
+                    self.SendWeaponAnim( CoFCAMERA_FIDGET3, 0, 0 );
+                break;
+
+                default:
+                    self.SendWeaponAnim( CoFCAMERA_IDLE, 0, 0 );
+                break;
+            }
+
+            self.m_flTimeWeaponIdle = g_Engine.time + g_PlayerFuncs.SharedRandomFloat( player.random_seed, 2, 4 );
         }
 
         void picture_watch( CTextMenu@ menu, CBasePlayer@ player, int iSlot, const CTextMenuItem@ item )
@@ -186,9 +219,6 @@ namespace camera
             {
                 auto user_data = player.GetUserData();
 
-                if( !user_data.exists( "pictures" ) )
-                    user_data[ "pictures" ] = dictionary();
-
                 auto pictures = cast<dictionary>( user_data[ "pictures" ] );
 
                 auto pictures_t = pictures.getKeys();
@@ -236,20 +266,51 @@ namespace camera
 
         void ItemPostFrame()
         {
+            auto player = m_hPlayer;
+
+            if( player is null )
+                return;
+
+            if( m_nightvision )
+            {
+                g_PlayerFuncs.ScreenFade( player, Vector( 0, 255, 0 ), 0, 1, 0, FFADE_OUT | FFADE_MODULATE );
+                m_nightvision_battery--;
+            }
+
             BaseClass.ItemPostFrame();
         }
 
-        void entities_on_sight()
+        void PrimaryAttack()
         {
             auto player = m_hPlayer;
 
             if( player is null )
                 return;
 
-            auto user_data = player.GetUserData();
+            self.SendWeaponAnim( CoFCAMERA_SHOOT );
 
-            if( !user_data.exists( "pictures" ) )
-                user_data[ "pictures" ] = dictionary();
+            TraceResult tr;
+            g_Utility.TraceLine( player.GetGunPosition(), player.GetGunPosition() + g_Engine.v_forward * 128, dont_ignore_monsters, dont_ignore_glass, player.edict(), tr );
+
+            NetworkMessage msg( MSG_BROADCAST, NetworkMessages::SVC_TEMPENTITY );
+                msg.WriteByte( TE_DLIGHT );
+                msg.WriteCoord( tr.vecEndPos.x );
+                msg.WriteCoord( tr.vecEndPos.y );
+                msg.WriteCoord( tr.vecEndPos.z );
+                msg.WriteByte( 32 );
+                msg.WriteByte( 254 );
+                msg.WriteByte( 254 );
+                msg.WriteByte( 254 );
+                msg.WriteByte( 1 );
+                msg.WriteByte( 100 );
+            msg.End();
+
+            player.SetAnimation( PLAYER_ATTACK1 );
+
+            g_SoundSystem.EmitSoundDyn( player.edict(), CHAN_WEAPON, "cof/guns/camera/photo.ogg", VOL_NORM, ATTN_NORM, 0, PITCH_NORM );
+            g_SoundSystem.EmitSoundDyn( player.edict(), CHAN_STATIC, "cof/guns/camera/charge.ogg", VOL_NORM, ATTN_NORM, 0, PITCH_NORM );
+
+            auto user_data = player.GetUserData();
 
             auto pictured_entities = cast<dictionary>( user_data[ "pictures" ] );
 
@@ -313,33 +374,58 @@ namespace camera
                     }
                 }
             }
-        }
 
-        void PrimaryAttack()
-        {
-            auto player = m_hPlayer;
-
-            if( player is null )
-                return;
-
-            entities_on_sight();
-
-            self.SendWeaponAnim( PYTHON_FIRE1, 0, 0 );
-
-            player.SetAnimation( PLAYER_ATTACK1 );
-
-            self.m_flNextPrimaryAttack = g_Engine.time + 0.75;
+            self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 1.3f;
         }
 
         void SecondaryAttack()
         {
-            //-TODO Toggle night vision.
-            self.m_flNextSecondaryAttack = g_Engine.time + 0.5;
+            auto player = m_hPlayer;
+
+            if( self.m_iClip == 0 || player is null )
+                return;
+
+            m_nightvision = !m_nightvision;
+
+            if( m_nightvision )
+            {
+                self.SendWeaponAnim( CoFCAMERA_HOLSTER );
+                g_SoundSystem.EmitSoundDyn( player.edict(), CHAN_WEAPON, "cof/guns/camera/charge.ogg", VOL_NORM, ATTN_NORM, 0, PITCH_NORM );
+                self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 1.0f;
+            }
+            else
+            {
+                self.SendWeaponAnim( CoFCAMERA_DRAW_FIRST );
+                g_SoundSystem.EmitSoundDyn( player.edict(), CHAN_WEAPON, "cof/guns/camera/lever.ogg", VOL_NORM, ATTN_NORM, 0, PITCH_NORM );
+                self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 1.63f;
+            }
         }
 
         void Reload()
         {
-            //-TODO Reload night vision battery
+            auto player = m_hPlayer;
+
+            if( self.m_iClip != 0 || player is null )
+                return;
+
+            auto ammo = player.m_rgAmmo( self.m_iPrimaryAmmoType );
+
+            if( ammo <= 0 )
+            {
+                g_SoundSystem.EmitSoundDyn( player.edict(), CHAN_WEAPON, "hlclassic/weapons/357_cock1.wav", VOL_NORM, ATTN_NORM, 0, PITCH_NORM );
+                return;
+            }
+
+            ammo--;
+            self.m_iClip = 1;
+            m_nightvision_battery = 100.0f;
+            player.m_rgAmmo( self.m_iPrimaryAmmoType, ammo );
+
+            self.SendWeaponAnim( CoFCAMERA_SHOOT );
+
+            g_SoundSystem.EmitSoundDyn( player.edict(), CHAN_WEAPON, "cof/guns/camera/lever.ogg", VOL_NORM, ATTN_NORM, 0, PITCH_NORM );
+
+            self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 1.3f;
         }
     }
 }

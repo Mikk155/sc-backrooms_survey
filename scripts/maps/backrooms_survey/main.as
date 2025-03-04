@@ -25,13 +25,36 @@ void MapInit()
     g_CustomEntityFuncs.RegisterCustomEntity( "GlobalThink", "global_think" );
     g_EntityFuncs.Create( "global_think", g_vecZero, g_vecZero, false );
 
-    g_CustomEntityFuncs.RegisterCustomEntity( "camera::CEnvironmentInformation", "env_info" );
-
     g_CustomEntityFuncs.RegisterCustomEntity( "vanisher::CNPCVanisher", "npc_vanisher" );
     g_CustomEntityFuncs.RegisterCustomEntity( "vanisher::CVanisherTargets", "info_vanisher_destination" );
 
+    /* =======================================================
+    *   Start of Camera weapon
+    =========================================================*/
+    g_CustomEntityFuncs.RegisterCustomEntity( "camera::CEnvironmentInformation", "env_info" );
+
+    g_Game.PrecacheGeneric( "sound/cof/guns/camera/photo.ogg" );
+    g_SoundSystem.PrecacheSound(  "cof/guns/camera/photo.ogg" );
+
+    g_Game.PrecacheGeneric( "sound/cof/guns/camera/charge.ogg" );
+    g_SoundSystem.PrecacheSound(  "cof/guns/camera/charge.ogg" );
+
+    g_Game.PrecacheGeneric( "sound/cof/guns/camera/lever.ogg" );
+    g_SoundSystem.PrecacheSound(  "cof/guns/camera/lever.ogg" );
+
+    g_Game.PrecacheModel( "models/cof/camera/vwm.mdl" );
+    g_Game.PrecacheModel( "models/cof/camera/wld.mdl" );
+
+    g_Game.PrecacheModel( "sprites/cof/wpn_sel01.spr" );
+    g_Game.PrecacheGeneric( "sprites/cof/wpn_sel01.spr" );
+    g_Game.PrecacheGeneric( "sprites/backrooms_survey/weapon_camera.txt" );
+
     g_CustomEntityFuncs.RegisterCustomEntity( "camera::CWeaponCamera", "weapon_camera" );
-    g_ItemRegistry.RegisterWeapon( "weapon_camera", "backgrooms/", "357", "", "ammo_357" );
+    g_ItemRegistry.RegisterWeapon( "weapon_camera", "backrooms_survey", "357", "", "ammo_357" );
+
+    /* =======================================================
+    *   End of Camera weapon
+    =========================================================*/
 
     g_Hooks.RegisterHook( Hooks::Player::PlayerSpawn, @on_playerspawn );
     g_Hooks.RegisterHook( Hooks::Player::PlayerTakeDamage, @on_playertakedamage );

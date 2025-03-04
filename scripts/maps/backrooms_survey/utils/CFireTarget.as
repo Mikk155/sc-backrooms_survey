@@ -41,7 +41,9 @@ mixin class CFireTarget
     void FireTarget( CBaseEntity@ activator, CBaseEntity@ caller, const string&in target )
     {
 #if SERVER
-        g_Logger.trace( "Entity {}::{}::{} firing targets \"{}\" with activator {} and use_type {}", { self.entindex(), self.pev.classname, self.pev.targetname, target, ( activator.IsPlayer() ? activator.pev.netname : activator.pev.classname + "::" + activator.pev.targetname, m_usetype ) } );
+        g_Logger.trace( "Entity {}::{}::{} firing targets \"{}\" with activator {} and use_type {}", {
+            self.entindex(), self.pev.classname, self.pev.targetname, target, (
+                activator.IsPlayer() ? activator.pev.netname : activator.pev.targetname ), m_usetype } );
 #endif
 
         if( m_killtarget != '' )
