@@ -14,7 +14,7 @@
 
 namespace vanisher
 {
-    class CVanisherTargets : ScriptBaseEntity, CToggleState
+    class CVanisherTargets : ScriptBaseEntity, CToggleState, CFireTarget
     {
         void Spawn()
         {
@@ -24,9 +24,30 @@ namespace vanisher
             g_EntityFuncs.SetOrigin( self, self.pev.origin );
         }
 
+        bool KeyValue( const string& in key, const string& in value )
+        {
+            if( CFireTarget( key, value ) )
+            {
+                return true;
+            }
+            return false;
+        }
+
         void Use( CBaseEntity@ activator, CBaseEntity@ caller, USE_TYPE use_type, float value )
         {
             entity_state( use_type );
+        }
+
+        void teleport( CBasePlayer@ player )
+        {
+            if( player !is null )
+            {
+                player.SetOrigin( pev.origin );
+                player.pev.fixangle = FAM_FORCEVIEWANGLES;
+                player.pev.angles = player.pev.v_angle = pev.angles;
+
+                FireTarget( player );
+            }
         }
     }
 }

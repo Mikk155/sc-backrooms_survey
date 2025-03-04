@@ -16,12 +16,13 @@ mixin class CFireTarget
 {
     protected USE_TYPE m_usetype = USE_TOGGLE;
     protected float m_delay;
+    protected string m_killtarget;
 
     bool CFireTarget( const string& in key, const string& in value )
     {
         if( key == "m_usetype" )
         {
-            m_usetype = cast<USE_TYPE>( Math.clamp( USE_OFF, USE_KILL, atoi( value ) ) );
+            m_usetype = USE_TYPE( Math.clamp( USE_OFF, USE_KILL, atoi( value ) ) );
             return true;
         }
         else if( key == "m_delay" )
@@ -29,15 +30,35 @@ mixin class CFireTarget
             m_delay = atof( value );
             return true;
         }
+        else if( key == "m_killtarget" )
+        {
+            m_killtarget = value;
+            return true;
+        }
         return false;
     }
 
     void FireTarget( CBaseEntity@ activator, CBaseEntity@ caller, const string&in target )
     {
+        if( m_killtarget != '' )
+        {
+            CBaseEntity@ entity = null;
+
+            while( ( @entity = g_EntityFuncs.FindEntityByTargetname( entity, m_killtarget ) ) !is null )
+            {
+                if( !entity.IsPlayer() && entity.entindex() != 0 )
+                {
+                    entity.UpdateOnRemove();
+                    entity.pev.flags |= FL_KILLME;
+                    entity.pev.targetname = 0;
+                }
+            }
+        }
+
         g_EntityFuncs.FireTargets( target, activator, caller is null ? self : caller, m_usetype, 0, m_delay );
     }
 
-    void FireTarget( CBaseEntity@ activator, CBaseEntity@ caller )
+    void FireTarget( CBaseEntity@ activator, CBaseEntity@ caller = null )
     {
         FireTarget( activator, caller, pev.target );
     }

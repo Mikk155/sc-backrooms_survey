@@ -3,12 +3,30 @@
     targetname(target_source) : "Name"
 ]
 
+@BaseClass = Angles
+[
+    angles(string) : "Pitch Yaw Roll (X Y Z)" : "0 0 0"
+]
+
 @BaseClass base( Targetname ) = CToggleState
 [
     spawnflags(Flags) =
     [
         1: "Start Off" : 0
     ]
+]
+
+@BaseClass = CFireTarget
+[
+    target(string) : "Target"
+    m_usetype(choices) : "Trigger State" : 3 =
+    [
+        0: "Off"
+        1: "On"
+        3: "Toggle"
+    ]
+    m_delay(float) : "Delay Before Trigger"
+    m_killtarget(target_destination) : "Kill Target"
 ]
 
 @PointClass base( CToggleState ) = env_info : "environment information"
@@ -73,9 +91,8 @@
     sprite_rendercolor(color255) : "[Sprite] FX Color (R G B)"
 ]
 
-@PointClass base( CToggleState ) = info_vanisher_destination : "npc vanisher's destinations"
+@PointClass base( CToggleState, Angles, CFireTarget, ) = info_vanisher_destination : "npc vanisher's destinations"
 [
-    target(string) : "Fire on teleport" : "Pass player as activator and this entity as caller."
 ]
 
 @PointClass base( CToggleState ) = npc_vanisher : "npc vanisher"

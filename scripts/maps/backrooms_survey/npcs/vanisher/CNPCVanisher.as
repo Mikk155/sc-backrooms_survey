@@ -239,12 +239,18 @@ namespace vanisher
 
         void attack( CBasePlayer@ player )
         {
-            array<CBaseEntity@> teleports = {};
+            array<CVanisherTargets@> teleports = {};
 
             CBaseEntity@ teleport = null;
 
-            while( ( @teleport = g_EntityFuncs.FindEntityByTargetname( teleport, "info_vanisher_destination" ) ) !is null && ( teleport.pev.spawnflags & 1 ) == 0 ) {
-                teleports.insertLast( teleport );
+            while( ( @teleport = g_EntityFuncs.FindEntityByTargetname( teleport, "info_vanisher_destination" ) ) !is null )
+            {
+                auto vanisher_teleport = cast<CVanisherTargets@>( CastToScriptClass( teleport ) );
+
+                if( vanisher_teleport !is null && ( vanisher_teleport.pev.spawnflags & 1 ) == 0 )
+                {
+                    teleports.insertLast( vanisher_teleport );
+                }
             }
 
             auto size = teleports.length();
@@ -255,13 +261,7 @@ namespace vanisher
                 return;
             }
 
-            auto vanisher_destination = teleports[ Math.RandomLong( 0, size - 1 ) ];
-
-            player.SetOrigin( vanisher_destination.pev.origin );
-            player.pev.fixangle = FAM_FORCEVIEWANGLES;
-            player.pev.angles = player.pev.v_angle = vanisher_destination.pev.angles;
-
-            g_EntityFuncs.FireTargets( vanisher_destination.pev.target, player, vanisher_destination, USE_TOGGLE, 0, 0 );
+            teleports[ Math.RandomLong( 0, size - 1 ) ].teleport( player );
         }
     }
 }
