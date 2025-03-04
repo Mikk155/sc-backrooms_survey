@@ -1,3 +1,6 @@
+#include "utils/CFireTarget"
+#include "utils/CToggleState"
+
 // Array of env_info entities
 array<EHandle> information_entities = {};
 
