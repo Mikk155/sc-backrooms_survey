@@ -53,52 +53,59 @@ class CEnvironmentInformation : ScriptBaseEntity
             {
                 buffer = value;
             }
+            return true;
         }
         else if( key == "name" )
         {
             name = value;
+            return true;
         }
         else if( key == "target_rendermode" )
         {
             target_rendermode = atoi( value );
+            return true;
         }
         else if( key == "target_renderamt" )
         {
             target_renderamt = atof( value );
+            return true;
         }
         else if( key == "target_rendercolor" )
         {
             g_Utility.StringToVector( target_rendercolor, value );
+            return true;
         }
         else if( key == "target_renderfx" )
         {
             target_renderfx = atoi( value );
+            return true;
         }
         else if( key == "glow_sprite" )
         {
             glow_sprite = value;
+            return true;
         }
         else if( key == "sprite_framerate" )
         {
             sprite_framerate = atof( value );
+            return true;
         }
         else if( key == "sprite_rendermode" )
         {
             sprite_rendermode = atoi( value );
+            return true;
         }
         else if( key == "sprite_renderamt" )
         {
             sprite_renderamt = atof( value );
+            return true;
         }
         else if( key == "sprite_rendercolor" )
         {
             g_Utility.StringToVector( sprite_rendercolor, value );
+            return true;
         }
-        else
-        {
-            return false;
-        }
-        return true;
+        return false;
     }
 
     void Spawn()

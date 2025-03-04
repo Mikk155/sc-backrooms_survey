@@ -66,21 +66,19 @@ namespace vanisher
             if( key == "m_min_cooldown" )
             {
                 m_min_cooldown = atoi( value );
+                return true;
             }
             else if( key == "m_max_cooldown" )
             {
                 m_max_cooldown = atoi( value );
+                return true;
             }
             else if( key == "m_retire_time" )
             {
                 m_retire_time = atoi( value );
+                return true;
             }
-            else
-            {
-                return false;
-            }
-
-            return true;
+            return false;
         }
 
         CBaseMonster@ create_vanisher()
