@@ -17,10 +17,17 @@ class CEnvironmentInformation : ScriptBaseEntity
     string buffer;
     string name;
 
-    int target_rendermode = -1;
-    float target_renderamt = -1;
-    Vector target_rendercolor = Vector( -1, -1, -1 );
-    int target_renderfx = -1;
+    bool target_has_rendermode;
+    RenderModes target_rendermode;
+
+    int target_renderamt;
+    bool target_has_renderamt;
+
+    Vector target_rendercolor;
+    bool target_has_rendercolor;
+
+    RenderFX target_renderfx;
+    bool target_has_renderfx;
 
     string glow_sprite;
     float sprite_framerate = 2.0f;
@@ -62,22 +69,26 @@ class CEnvironmentInformation : ScriptBaseEntity
         }
         else if( key == "target_rendermode" )
         {
-            target_rendermode = atoi( value );
+            target_rendermode = RenderModes( atoi( value ) );
+            target_has_rendermode = true;
             return true;
         }
         else if( key == "target_renderamt" )
         {
-            target_renderamt = atof( value );
+            target_renderamt = Math.clamp( 0, 255, atoi( value ) );
+            target_has_renderamt = true;
             return true;
         }
         else if( key == "target_rendercolor" )
         {
             g_Utility.StringToVector( target_rendercolor, value );
+            target_has_rendercolor = true;
             return true;
         }
         else if( key == "target_renderfx" )
         {
-            target_renderfx = atoi( value );
+            target_renderfx = RenderFX( atoi( value ) );
+            target_has_renderfx = true;
             return true;
         }
         else if( key == "glow_sprite" )

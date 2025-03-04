@@ -124,8 +124,21 @@ class CWeaponCamera : ScriptBasePlayerWeaponEntity
 
                         if( env_info.pev.target != "" )
                         {
-                            apply_rendering( player, env_info.pev.target, true, env_info.target_rendermode, env_info.target_renderamt, env_info.target_renderfx, env_info.target_rendercolor );
-                            g_Scheduler.SetTimeout( "remove_rendering", 10.0f, player.entindex(), string(env_info.pev.target) );
+                            // -TODO Custom camera time? need to update rendering. holdTime and camera's wait
+                            auto render = g_Rendering.create( 10.0 );
+
+                            if( env_info.target_has_rendermode )
+                                render.rendermode = env_info.target_rendermode;
+                            if( env_info.target_has_renderamt )
+                                render.renderamt = env_info.target_renderamt;
+                            if( env_info.target_has_renderfx )
+                                render.renderfx = env_info.target_renderfx;
+                            if( env_info.target_has_rendercolor )
+                                render.rendercolor = env_info.target_rendercolor;
+
+                            render.target = env_info.pev.target;
+
+                            render.add_player( player );
                         }
 
                         hud_msg.holdTime = 10.0f;

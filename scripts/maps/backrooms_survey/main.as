@@ -27,7 +27,7 @@ void MapInit()
 
     g_CustomEntityFuncs.RegisterCustomEntity( "CEnvironmentInformation", "env_info" );
 
-    g_CustomEntityFuncs.RegisterCustomEntity( "vanisher::CNPCVanisher", "npc_vanisher" );
+//    g_CustomEntityFuncs.RegisterCustomEntity( "vanisher::CNPCVanisher", "npc_vanisher" );
     g_CustomEntityFuncs.RegisterCustomEntity( "vanisher::CVanisherTargets", "info_vanisher_destination" );
 
     g_CustomEntityFuncs.RegisterCustomEntity( "CWeaponCamera", "weapon_camera" );
@@ -43,7 +43,6 @@ void MapInit()
     // Initialize player-basis arrays
     for( int i = 0; i < g_Engine.maxClients; i++ ) {
         trigger_cameras.insertLast( EHandle(null) );
-        render_individuals.insertLast( EHandle(null) );
         menus.insertLast( null );
     }
 
@@ -67,6 +66,7 @@ void MapActivate()
 
 void MapThink()
 {
+    g_Rendering.think();
 }
 
 HookReturnCode on_playerspawn( CBasePlayer@ player )
