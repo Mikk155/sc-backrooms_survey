@@ -40,22 +40,22 @@ class CLogger
         return str;
     }
 
-    void error( const string &in fmt, array<string>@ args )
+    void error( const string &in fmt, array<string>@ args = {} )
     {
         g_Game.AlertMessage( at_error, this._format_( fmt, args ) );
     }
 
-    void warn( const string &in fmt, array<string>@ args )
+    void warn( const string &in fmt, array<string>@ args = {} )
     {
         g_Game.AlertMessage( at_warning, this._format_( fmt, args ) );
     }
 
-    void info( const string &in fmt, array<string>@ args )
+    void info( const string &in fmt, array<string>@ args = {} )
     {
         g_Game.AlertMessage( at_console, this._format_( fmt, args ) );
     }
 
-    void trace( const string &in fmt, array<string>@ args )
+    void trace( const string &in fmt, array<string>@ args = {} )
     {
         g_Game.AlertMessage( at_aiconsole, this._format_( fmt, args ) );
     }
