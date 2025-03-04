@@ -52,12 +52,22 @@ namespace camera
         CoFCAMERA_MELEE 
     };
 
+    enum sprint_state
+    {
+        sprint_no = 0,
+        sprint_start,
+        sprint_loop,
+        sprint_end
+    };
+
     class CWeaponCamera : ScriptBasePlayerWeaponEntity
     {
         float m_flNextPictureTime;
 
         bool m_nightvision;
         float m_nightvision_battery;
+
+        sprint_state m_sprint_state;
 
         private CBasePlayer@ m_hPlayer
         {
@@ -114,6 +124,11 @@ namespace camera
             return true;
         }
 
+        void Holster( int skiplocal = 0 )
+        {
+            m_sprint_state = sprint_state::sprint_no;
+        }
+
         void WeaponIdle()
         {
             auto player = m_hPlayer;
@@ -121,26 +136,55 @@ namespace camera
             if( self.m_flTimeWeaponIdle > g_Engine.time || player is null )
                 return;
 
-            switch( Math.RandomLong( 0, 3 ) )
+            if( m_sprint_state == sprint_state::sprint_no )
             {
-                case 1:
-                    self.SendWeaponAnim( CoFCAMERA_FIDGET1, 0, 0 );
-                break;
+                if( player.pev.velocity.Make2D().Length() > 100 )
+                {
+                    self.SendWeaponAnim( CoFCAMERA_SPRINT_TO, 0, 0 );
+                    m_sprint_state = sprint_state::sprint_start;
+                    self.m_flTimeWeaponIdle = g_Engine.time + 0.5f;
+                }
+                else
+                {
+                    switch( Math.RandomLong( 0, 3 ) )
+                    {
+                        case 1:
+                            self.SendWeaponAnim( CoFCAMERA_FIDGET1, 0, 0 );
+                        break;
 
-                case 2:
-                    self.SendWeaponAnim( CoFCAMERA_FIDGET2, 0, 0 );
-                break;
+                        case 2:
+                            self.SendWeaponAnim( CoFCAMERA_FIDGET2, 0, 0 );
+                        break;
 
-                case 3:
-                    self.SendWeaponAnim( CoFCAMERA_FIDGET3, 0, 0 );
-                break;
+                        case 3:
+                            self.SendWeaponAnim( CoFCAMERA_FIDGET3, 0, 0 );
+                        break;
 
-                default:
-                    self.SendWeaponAnim( CoFCAMERA_IDLE, 0, 0 );
-                break;
+                        default:
+                            self.SendWeaponAnim( CoFCAMERA_IDLE, 0, 0 );
+                        break;
+                    }
+
+                    self.m_flTimeWeaponIdle = g_Engine.time + g_PlayerFuncs.SharedRandomFloat( player.random_seed, 2, 4 );
+                }
             }
-
-            self.m_flTimeWeaponIdle = g_Engine.time + g_PlayerFuncs.SharedRandomFloat( player.random_seed, 2, 4 );
+            else if( m_sprint_state == sprint_state::sprint_start )
+            {
+                self.SendWeaponAnim( CoFCAMERA_SPRINT_IDLE, 0, 0 );
+                m_sprint_state = sprint_state::sprint_loop;
+                self.m_flTimeWeaponIdle = g_Engine.time + 0.5f;
+            }
+            else if( player.pev.velocity.Make2D().Length() > 100 )
+            {
+                self.SendWeaponAnim( CoFCAMERA_SPRINT_IDLE, 0, 0 );
+                self.m_flTimeWeaponIdle = g_Engine.time + 0.65f;
+            }
+            else
+            {
+                self.SendWeaponAnim( CoFCAMERA_SPRINT_FROM, 0, 0 );
+                m_sprint_state = sprint_state::sprint_no;
+                self.m_flTimeWeaponIdle = g_Engine.time + 0.5f;
+            }
         }
 
         void picture_watch( CTextMenu@ menu, CBasePlayer@ player, int iSlot, const CTextMenuItem@ item )
