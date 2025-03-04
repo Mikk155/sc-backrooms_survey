@@ -179,12 +179,6 @@ namespace camera
                 self.SendWeaponAnim( CoFCAMERA_SPRINT_IDLE, 0, 0 );
                 self.m_flTimeWeaponIdle = g_Engine.time + 0.65f;
             }
-            else
-            {
-                self.SendWeaponAnim( CoFCAMERA_SPRINT_FROM, 0, 0 );
-                m_sprint_state = sprint_state::sprint_no;
-                self.m_flTimeWeaponIdle = g_Engine.time + 0.5f;
-            }
         }
 
         void picture_watch( CTextMenu@ menu, CBasePlayer@ player, int iSlot, const CTextMenuItem@ item )
@@ -314,6 +308,17 @@ namespace camera
 
             if( player is null )
                 return;
+
+            if( m_sprint_state == sprint_state::sprint_no && player.pev.velocity.Make2D().Length() > 100 ) {
+                self.SendWeaponAnim( CoFCAMERA_SPRINT_TO, 0, 0 );
+                m_sprint_state = sprint_state::sprint_start;
+                self.m_flTimeWeaponIdle = g_Engine.time + 0.01f;
+            }
+            else if( m_sprint_state == sprint_state::sprint_loop &&  player.pev.velocity.Make2D().Length() <= 100 ) {
+                self.SendWeaponAnim( CoFCAMERA_SPRINT_FROM, 0, 0 );
+                m_sprint_state = sprint_state::sprint_no;
+                self.m_flTimeWeaponIdle = g_Engine.time + 0.5f;
+            }
 
             if( m_nightvision )
             {
