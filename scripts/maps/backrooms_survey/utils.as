@@ -1,4 +1,5 @@
 #include "utils/CFireTarget"
+#include "utils/CLogger"
 #include "utils/CToggleState"
 
 // Array of env_info entities
@@ -147,3 +148,21 @@ const float M_PI = ( 180.0 / 3.14159265358979323846 );
 
 // Global hud params
 HUDTextParams hud_msg;
+
+// Idk. schedules sucks.
+class GlobalThink : ScriptBaseEntity
+{
+    void think()
+    {
+        MapThink();
+        pev.nextthink = g_Engine.time + 0.1f;
+    }
+
+    void Spawn()
+    {
+        self.pev.solid = SOLID_NOT;
+        self.pev.movetype = MOVETYPE_NONE;
+        SetThink( ThinkFunction( this.think ) );
+        pev.nextthink = g_Engine.time + 0.1f;
+    }
+}

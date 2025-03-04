@@ -12,8 +12,6 @@
 *       - Mikk155 - Author -
 */
 
-#include "utils/CLogger"
-
 #include "utils"
 
 #include "entities/CEnvironmentInformation"
@@ -24,6 +22,9 @@
 
 void MapInit()
 {
+    g_CustomEntityFuncs.RegisterCustomEntity( "GlobalThink", "global_think" );
+    g_EntityFuncs.Create( "global_think", g_vecZero, g_vecZero, false );
+
     g_CustomEntityFuncs.RegisterCustomEntity( "CEnvironmentInformation", "env_info" );
 
     g_CustomEntityFuncs.RegisterCustomEntity( "vanisher::CNPCVanisher", "npc_vanisher" );
@@ -61,6 +62,10 @@ void MapStart()
 }
 
 void MapActivate()
+{
+}
+
+void MapThink()
 {
 }
 
