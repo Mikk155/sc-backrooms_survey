@@ -47,10 +47,10 @@ void MapInit()
 
     g_Game.PrecacheModel( "sprites/cof/wpn_sel01.spr" );
     g_Game.PrecacheGeneric( "sprites/cof/wpn_sel01.spr" );
-    g_Game.PrecacheGeneric( "sprites/backrooms_survey/weapon_camera.txt" );
+    g_Game.PrecacheGeneric( "sprites/brp/weapon_camera.txt" );
 
     g_CustomEntityFuncs.RegisterCustomEntity( "camera::CWeaponCamera", "weapon_camera" );
-    g_ItemRegistry.RegisterWeapon( "weapon_camera", "backrooms_survey", "357", "", "ammo_357" );
+    g_ItemRegistry.RegisterWeapon( "weapon_camera", "brp", "357", "", "ammo_357" );
 
     /* =======================================================
     *   End of Camera weapon

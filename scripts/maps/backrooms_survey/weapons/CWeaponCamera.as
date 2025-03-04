@@ -128,16 +128,19 @@ namespace camera
 
         void Holster( int skiplocal = 0 )
         {
-            m_sprint_state = sprint_state::sprint_no;
-            m_nightvision = false;
-            m_nightvision_radius = 0;
-
             auto player = m_hPlayer;
 
             if( player is null )
-                return;
+            {
+                if( m_nightvision )
+                {
+                    g_PlayerFuncs.ScreenFade( player, Vector( 0, 200, 20 ), 1.0f, 0.5f, 255.0f, FFADE_MODULATE );
+                }
+            }
 
-            g_PlayerFuncs.ScreenFade( player, Vector( 0, 200, 20 ), 1.0f, 0.5f, 255.0f, FFADE_MODULATE );
+            m_sprint_state = sprint_state::sprint_no;
+            m_nightvision = false;
+            m_nightvision_radius = 0;
         }
 
         void WeaponIdle()

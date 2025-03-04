@@ -94,8 +94,8 @@ namespace vanisher
             g_EntityFuncs.DispatchKeyValue( entity.edict(), "freeroam", "2" );
             g_EntityFuncs.DispatchKeyValue( entity.edict(), "health", "1000" );
             g_EntityFuncs.DispatchKeyValue( entity.edict(), "bloodcolor", "1" );
-            g_EntityFuncs.DispatchKeyValue( entity.edict(), "soundlist", "backrooms_survey/vanisher.gsr" );
-            g_EntityFuncs.DispatchKeyValue( entity.edict(), "model", "models/backrooms_survey/npcs/vanisher.mdl" );
+            g_EntityFuncs.DispatchKeyValue( entity.edict(), "soundlist", "brp/vanisher.gsr" );
+            g_EntityFuncs.DispatchKeyValue( entity.edict(), "model", "models/brp/npcs/vanisher.mdl" );
             g_EntityFuncs.DispatchKeyValue( entity.edict(), "displayname", "Vanisher" );
             g_EntityFuncs.DispatchKeyValue( entity.edict(), "targetname", "npc_vanisher" );
 
