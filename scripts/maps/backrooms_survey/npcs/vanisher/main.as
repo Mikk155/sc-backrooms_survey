@@ -17,7 +17,9 @@
 
 namespace vanisher
 {
+#if SERVER
     CLogger@ m_Logger = CLogger( "NPC Vanisher" );
+#endif
 
     enum vanisher_state
     {

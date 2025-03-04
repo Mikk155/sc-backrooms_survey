@@ -55,6 +55,9 @@ namespace vanisher
 
                 if( vanisher !is null )
                 {
+#if SERVER
+                    m_Logger.warn( "Turned off NPC controller but the vanisher npc reference exists. Removing..." );
+#endif
                     // -TODO Should we play submerge animation?
                     g_EntityFuncs.Remove( vanisher );
                 }
@@ -133,6 +136,26 @@ namespace vanisher
                     if(  m_next_summon > g_Engine.time )
                         return;
 
+#if SERVER
+                    m_Logger.trace( "Time to summon! Enumerating player candidates:" );
+#endif
+
+                    array<int> players = {};
+
+                    for( int i = 0; i <= g_Engine.maxClients; i++ )
+                    {
+                        auto candidate = g_PlayerFuncs.FindPlayerByIndex( i );
+
+                        if( candidate !is null
+                        and candidate.IsConnected()
+                        and candidate.IsAlive()
+                        ) {
+#if SERVER
+                            m_Logger.trace( candidate.pev.netname );
+#endif
+                        }
+                    }
+
                     // -TODO Get a random player with special logic handling to not include everyone in "safe" parts of the map.
                     auto player = g_EntityFuncs.FindEntityByClassname( null, "player" );
 
@@ -142,6 +165,9 @@ namespace vanisher
 
                         if( vanisher !is null )
                         {
+#if SERVER
+                            m_Logger.trace( "Got candidate {} to summon in", { player.pev.netname } );
+#endif
                             // TEST
                             if( true ) {
                                 m_state = vanisher_state::on_search;
@@ -170,9 +196,17 @@ namespace vanisher
 
                     if( !vanisher.m_hEnemy.IsValid() || vanisher.m_hEnemy.GetEntity() is null )
                     {
+#if SERVER
+                        m_Logger.trace( "Lost sight of player enemy. retiring in {}", { m_retire_time } );
+#endif
                         vanisher.SetState( MONSTERSTATE_IDLE ); // So it roams a bit.
                         m_state = vanisher_state::on_search;
                         m_next_retire = g_Engine.time + m_retire_time;
+                    }
+                    else
+                    {
+                        // -TODO Make the zombie lose m_hEnemy
+                        vanisher.m_hEnemy = EHandle( null );
                     }
 
                     break;
@@ -201,6 +235,13 @@ namespace vanisher
 
                         m_state = vanisher_state::on_leave;
                     }
+                    else if( vanisher.m_hEnemy.IsValid() && vanisher.m_hEnemy.GetEntity() !is null )
+                    {
+                        m_state = vanisher_state::on_charging;
+#if SERVER
+                        m_Logger.trace( "Found a new enemy {}. restoring to previous state", { vanisher.m_hEnemy.GetEntity().pev.netname } );
+#endif
+                    }
                     break;
                 }
                 case vanisher_state::on_leave:
@@ -216,6 +257,9 @@ namespace vanisher
                                     ( g_Engine.maxClients - g_PlayerFuncs.GetNumPlayers() ) /
                                         ( g_Engine.maxClients - 1 )
                         );
+#if SERVER
+                        m_Logger.trace( "Vanisher npc gone. summoning again in {}", { m_next_summon } );
+#endif
                         m_state = vanisher_state::on_wait;
                     }
                     else
@@ -227,7 +271,6 @@ namespace vanisher
                         vanisher.pev.targetname = 0;
                         @self.pev.owner = null;
                         */
-                        g_Game.AlertMessage( at_console, "Playing " + vanisher.pev.sequence + "\n" );
                     }
 
                     break;
@@ -255,7 +298,9 @@ namespace vanisher
 
             if( size == 0 )
             {
-                g_Game.AlertMessage( at_console, "No valid \"info_vanisher_destination\" entity.\n" );
+#if SERVER
+                m_Logger.error( "No valid \"info_vanisher_destination\" entity.\n" );
+#endif
                 return;
             }
 

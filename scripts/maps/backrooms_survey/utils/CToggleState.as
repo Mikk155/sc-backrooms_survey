@@ -24,11 +24,17 @@ mixin class CToggleState
         {
             case USE_ON:
             {
+#if SERVER
+                g_Logger.trace( "Entity {}::{}::{} is been {}.", { self.entindex(), self.pev.classname, self.pev.targetname, "enabled" } );
+#endif
                 pev.spawnflags &= ~1;
                 return true;
             }
             case USE_OFF:
             {
+#if SERVER
+                g_Logger.trace( "Entity {}::{}::{} is been {}.", { self.entindex(), self.pev.classname, self.pev.targetname, "disabled" } );
+#endif
                 pev.spawnflags |= 1;
                 return false;
             }
@@ -36,11 +42,17 @@ mixin class CToggleState
             {
                 if( ( pev.spawnflags & 1 ) != 0 )
                 {
+#if SERVER
+                    g_Logger.trace( "Entity {}::{}::{} is been {}.", { self.entindex(), self.pev.classname, self.pev.targetname, "disabled" } );
+#endif
                     pev.spawnflags |= 1;
                     return false;
                 }
                 else
                 {
+#if SERVER
+                    g_Logger.trace( "Entity {}::{}::{} is been {}.", { self.entindex(), self.pev.classname, self.pev.targetname, "enabled" } );
+#endif
                     pev.spawnflags &= ~1;
                     return true;
                 }

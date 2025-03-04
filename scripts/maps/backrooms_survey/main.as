@@ -25,20 +25,18 @@ void MapInit()
     g_CustomEntityFuncs.RegisterCustomEntity( "GlobalThink", "global_think" );
     g_EntityFuncs.Create( "global_think", g_vecZero, g_vecZero, false );
 
-    g_CustomEntityFuncs.RegisterCustomEntity( "CEnvironmentInformation", "env_info" );
+    g_CustomEntityFuncs.RegisterCustomEntity( "camera::CEnvironmentInformation", "env_info" );
 
-//    g_CustomEntityFuncs.RegisterCustomEntity( "vanisher::CNPCVanisher", "npc_vanisher" );
+    g_CustomEntityFuncs.RegisterCustomEntity( "vanisher::CNPCVanisher", "npc_vanisher" );
     g_CustomEntityFuncs.RegisterCustomEntity( "vanisher::CVanisherTargets", "info_vanisher_destination" );
 
-    g_CustomEntityFuncs.RegisterCustomEntity( "CWeaponCamera", "weapon_camera" );
+    g_CustomEntityFuncs.RegisterCustomEntity( "camera::CWeaponCamera", "weapon_camera" );
     g_ItemRegistry.RegisterWeapon( "weapon_camera", "backgrooms/", "357", "", "ammo_357" );
 
     g_Hooks.RegisterHook( Hooks::Player::PlayerSpawn, @on_playerspawn );
     g_Hooks.RegisterHook( Hooks::Player::PlayerTakeDamage, @on_playertakedamage );
 
-#if SERVER
     g_Game .PrecacheModel( "sprites/glow01.spr" );
-#endif
 
     // Initialize player-basis arrays
     for( int i = 0; i < g_Engine.maxClients; i++ ) {

@@ -1,5 +1,7 @@
 #include "utils/CFireTarget"
+#if SERVER
 #include "utils/CLogger"
+#endif
 #include "utils/CRendering"
 #include "utils/CToggleState"
 

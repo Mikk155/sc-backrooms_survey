@@ -46,6 +46,10 @@ namespace vanisher
                 player.pev.fixangle = FAM_FORCEVIEWANGLES;
                 player.pev.angles = player.pev.v_angle = pev.angles;
 
+#if SERVER
+            m_Logger.trace( "Teleported player {} to {}", { player.pev.netname, pev.origin.ToString() } );
+#endif
+
                 FireTarget( player );
             }
         }
