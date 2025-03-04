@@ -1,10 +1,20 @@
-@PointClass = env_info : "environment information"
+@BaseClass = Targetname
 [
-    targetname(target_source) : "Targetname"
+    targetname(target_source) : "Name"
+]
 
+@BaseClass base( Targetname ) = CToggleState
+[
     spawnflags(Flags) =
     [
         1: "Start Off" : 0
+    ]
+]
+
+@PointClass base( CToggleState ) = env_info : "environment information"
+[
+    spawnflags(Flags) =
+    [
         2: "Don't show glow sprite" : 0
     ]
 
@@ -63,14 +73,14 @@
     sprite_rendercolor(color255) : "[Sprite] FX Color (R G B)"
 ]
 
-@PointClass = info_vanisher_destination : "npc vanisher's destinations"
+@PointClass base( CToggleState ) = info_vanisher_destination : "npc vanisher's destinations"
 [
-    targetname(target_source) : "Targetname"
-
-    spawnflags(Flags) =
-    [
-        1: "Start Off" : 0
-    ]
-
     target(string) : "Fire on teleport" : "Pass player as activator and this entity as caller."
+]
+
+@PointClass base( CToggleState ) = npc_vanisher : "npc vanisher"
+[
+    m_min_cooldown(integer) : "Minimun cooldown time" : 1200
+    m_max_cooldown(integer) : "Maximun cooldown time" : 6000
+    m_retire_time(integer) : "Idle time until retire" : 10
 ]

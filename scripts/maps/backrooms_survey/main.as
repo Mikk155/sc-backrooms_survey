@@ -18,7 +18,7 @@
 
 #include "entities/CEnvironmentInformation"
 
-#include "npcs/vanisher"
+#include "npcs/vanisher/main"
 
 #include "weapons/CWeaponCamera"
 
@@ -26,8 +26,8 @@ void MapInit()
 {
     g_CustomEntityFuncs.RegisterCustomEntity( "CEnvironmentInformation", "env_info" );
 
-    g_CustomEntityFuncs.RegisterCustomEntity( "CNPCVaisher", "npc_vanisher" );
-    g_CustomEntityFuncs.RegisterCustomEntity( "CVanisherTargets", "info_vanisher_destination" );
+    g_CustomEntityFuncs.RegisterCustomEntity( "vanisher::CNPCVanisher", "npc_vanisher" );
+    g_CustomEntityFuncs.RegisterCustomEntity( "vanisher::CVanisherTargets", "info_vanisher_destination" );
 
     g_CustomEntityFuncs.RegisterCustomEntity( "CWeaponCamera", "weapon_camera" );
     g_ItemRegistry.RegisterWeapon( "weapon_camera", "backgrooms/", "357", "", "ammo_357" );
@@ -96,7 +96,7 @@ HookReturnCode on_playertakedamage( DamageInfo@ pDamageInfo )
 
             try
             {
-                cast<CNPCVaisher@>( CastToScriptClass( vanisher ) ).attack( victim );
+                cast<vanisher::CNPCVanisher@>( CastToScriptClass( vanisher ) ).attack( victim );
             }
             catch
             {
