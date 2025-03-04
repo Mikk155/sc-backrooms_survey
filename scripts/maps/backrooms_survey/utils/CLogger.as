@@ -24,7 +24,7 @@ class CLogger
     private string _format_( const string &in fmt, array<string>@ args )
     {
         string str;
-        snprintf( str, "[%1] %3\n", this.name, fmt );
+        snprintf( str, "[%1] %2\n", this.name, fmt );
 
         for( uint ui = 0; ui < args.length(); ui++ )
         {
