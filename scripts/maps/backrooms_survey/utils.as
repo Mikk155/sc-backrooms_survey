@@ -1,9 +1,9 @@
-#include "utils/CFireTarget"
+#include "baseclass/CFireTarget"
+#include "baseclass/CToggleState"
 #if SERVER
 #include "utils/CLogger"
 #endif
 #include "utils/CRendering"
-#include "utils/CToggleState"
 
 // Array of env_info entities
 array<EHandle> information_entities = {};
