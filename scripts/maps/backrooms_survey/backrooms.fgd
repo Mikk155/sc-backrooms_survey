@@ -18,7 +18,7 @@
 
 @BaseClass = CFireTarget
 [
-    target(string) : "Target"
+    target(target_destination) : "Target" : "" : "Fire one or multiple targets separated by a semicolon 'target1;target2' you can also set a custom trugger type for each of them for example 'trigger1#1;trigger2#1;trigger3#2' if not set we'll use 'm_usetype'"
     m_usetype(choices) : "Trigger State" : 3 =
     [
         0: "Off"
