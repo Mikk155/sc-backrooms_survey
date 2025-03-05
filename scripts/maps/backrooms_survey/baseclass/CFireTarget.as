@@ -40,7 +40,7 @@ mixin class CFireTarget
 
     void FireTarget( const string&in target, CBaseEntity@ activator, CBaseEntity@ caller = null )
     {
-        if( m_killtarget != '' )
+        if( m_killtarget != String::EMPTY_STRING )
         {
             CBaseEntity@ entity = null;
 
@@ -58,31 +58,34 @@ mixin class CFireTarget
             }
         }
 
-        array<string> targets = { target };
-
-        if( target.Find( ";", 0 ) != String::INVALID_INDEX )
+        if( target != String::EMPTY_STRING )
         {
-            targets = target.Split( ";" );
-        }
+            array<string> targets = { target };
 
-        for( uint ui = 0; ui < targets.length(); ui ++ )
-        {
-            auto puse_type = m_usetype;
-
-            if( targets[ui].Find( "#", 0 ) != String::INVALID_INDEX )
+            if( target.Find( ";", 0 ) != String::INVALID_INDEX )
             {
-                array<string> target_usetype = targets[ui].Split( "#" );
-                targets[ui] = target_usetype[0];
-                puse_type = USE_TYPE( Math.clamp( USE_OFF, USE_KILL, atoi( target_usetype[1] ) ) );
+                targets = target.Split( ";" );
             }
 
+            for( uint ui = 0; ui < targets.length(); ui ++ )
+            {
+                auto puse_type = m_usetype;
+
+                if( targets[ui].Find( "#", 0 ) != String::INVALID_INDEX )
+                {
+                    array<string> target_usetype = targets[ui].Split( "#" );
+                    targets[ui] = target_usetype[0];
+                    puse_type = USE_TYPE( Math.clamp( USE_OFF, USE_KILL, atoi( target_usetype[1] ) ) );
+                }
+
 #if SERVER
-            g_Logger.trace( "Entity {}::{}::{} firing targets \"{}\" with activator {} and use_type {}", {
-                self.entindex(), self.pev.classname, self.pev.targetname, target, (
-                    activator.IsPlayer() ? activator.pev.netname : activator.pev.targetname ), puse_type } );
+                g_Logger.trace( "Entity {}::{}::{} firing targets \"{}\" with activator {} and use_type {}", {
+                    self.entindex(), self.pev.classname, self.pev.targetname, target, (
+                        activator.IsPlayer() ? activator.pev.netname : activator.pev.targetname ), puse_type } );
 #endif
 
-            g_EntityFuncs.FireTargets( target, activator, caller is null ? self : caller, puse_type, 0, m_delay );
+                g_EntityFuncs.FireTargets( target, activator, caller is null ? self : caller, puse_type, 0, m_delay );
+            }
         }
     }
 
