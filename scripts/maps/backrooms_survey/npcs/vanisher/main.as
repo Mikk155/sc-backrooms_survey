@@ -33,11 +33,15 @@ namespace vanisher
         on_leave
     };
 
-    enum vanisher_sequences
+    enum vanisher_anims
     {
         idle = 0,
+        walk,
+        attack,
+        attack2,
         submerge,
         sub_idle,
-        emerge
+        emerge,
+        die
     };
 }

@@ -16,18 +16,10 @@ namespace vanisher
 {
     class CNPCVanisher : ScriptBaseEntity, CToggleState
     {
-        // Current state
-        vanisher_state m_state = on_wait;
+        int m_CineAI;
+        int m_iEnemy;
 
-        // Time until reach 0 and summon to a random player.
-        float m_next_summon;
-
-        // Time until starts going on ground.
-        float m_next_retire;
-
-        // Time until it's retired.
-        float m_has_retired;
-
+        // Keyvalues
         int m_min_cooldown = 1200;
         int m_max_cooldown = 6000;
         int m_retire_time = 10;
@@ -48,15 +40,12 @@ namespace vanisher
         {
             if( !entity_state( use_type ) )
             {
-                m_next_summon = 0;
-                m_state = vanisher_state::on_wait;
-
                 auto vanisher = m_hvanisher;
 
                 if( vanisher !is null )
                 {
 #if SERVER
-                    m_Logger.warn( "Turned off NPC controller but the vanisher npc reference exists. Removing..." );
+                    m_Logger.warn( "Turned off NPC controller but the vanisher npc reference still exists. Removing..." );
 #endif
                     // -TODO Should we play submerge animation?
                     g_EntityFuncs.Remove( vanisher );
@@ -92,12 +81,13 @@ namespace vanisher
                 @entity = g_EntityFuncs.Create( "monster_zombie", pev.origin, pev.angles, true, self.edict() );
 
             g_EntityFuncs.DispatchKeyValue( entity.edict(), "freeroam", "2" );
-            g_EntityFuncs.DispatchKeyValue( entity.edict(), "health", "1000" );
             g_EntityFuncs.DispatchKeyValue( entity.edict(), "bloodcolor", "1" );
             g_EntityFuncs.DispatchKeyValue( entity.edict(), "soundlist", "brp/vanisher.gsr" );
             g_EntityFuncs.DispatchKeyValue( entity.edict(), "model", "models/brp/npcs/vanisher.mdl" );
             g_EntityFuncs.DispatchKeyValue( entity.edict(), "displayname", "Vanisher" );
             g_EntityFuncs.DispatchKeyValue( entity.edict(), "targetname", "npc_vanisher" );
+            g_EntityFuncs.DispatchKeyValue( entity.edict(), "health", "10" );
+            g_EntityFuncs.DispatchKeyValue( entity.edict(), "frags", "50" );
 
             g_EntityFuncs.DispatchSpawn( entity.edict() );
 
@@ -108,174 +98,291 @@ namespace vanisher
             return m_hvanisher;
         }
 
-        void Spawn()
+        void Precache()
         {
             // This precaches the gsr and model then removes the entity.
-            g_EntityFuncs.Remove( create_vanisher() );
+            auto vanisher = create_vanisher();
+            g_EntityFuncs.Remove( vanisher );
+        }
+
+        void Spawn()
+        {
+            Precache();
 
             self.pev.solid = SOLID_NOT;
             self.pev.movetype = MOVETYPE_NONE;
 
             g_EntityFuncs.SetOrigin( self, self.pev.origin );
 
-            SetThink( ThinkFunction( this.think ) );
+            if( self.pev.targetname == "" )
+                self.pev.targetname = "npc_vanisher_controller";
+
+            SetThink( ThinkFunction( this.state_find_candidate ) );
             pev.nextthink = g_Engine.time + 0.1f;
         }
 
-        void think()
+        void state_find_candidate()
         {
-            pev.nextthink = g_Engine.time + 0.1f;
-
             if( !entity_state() )
-                return;
-
-            switch( m_state )
             {
-                case vanisher_state::on_wait:
-                {
-                    if(  m_next_summon > g_Engine.time )
-                        return;
+                pev.nextthink = g_Engine.time + 0.1f;
+                return;
+            }
+
+            array<CBasePlayer@> players = {};
 
 #if SERVER
-                    m_Logger.trace( "Time to summon! Enumerating player candidates:" );
+            array<string> player_names = {};
 #endif
 
-                    array<int> players = {};
+            for( int i = 0; i <= g_Engine.maxClients; i++ )
+            {
+                auto candidate = g_PlayerFuncs.FindPlayerByIndex( i );
 
-                    for( int i = 0; i <= g_Engine.maxClients; i++ )
-                    {
-                        auto candidate = g_PlayerFuncs.FindPlayerByIndex( i );
-
-                        if( candidate !is null
-                        and candidate.IsConnected()
-                        and candidate.IsAlive()
-                        ) {
+                // -TODO Get people on a "unsafe" part of the map. maybe custom keyvalues?
+                if( candidate !is null
+                and candidate.IsConnected()
+                and candidate.IsAlive()
+                ) {
 #if SERVER
-                            m_Logger.trace( candidate.pev.netname );
+                    m_Logger.trace( candidate.pev.netname );
+                    player_names.insertLast( candidate.pev.netname );
 #endif
-                        }
-                    }
-
-                    // -TODO Get a random player with special logic handling to not include everyone in "safe" parts of the map.
-                    auto player = g_EntityFuncs.FindEntityByClassname( null, "player" );
-
-                    if( player !is null )
-                    {
-                        auto vanisher = create_vanisher();
-
-                        if( vanisher !is null )
-                        {
-#if SERVER
-                            m_Logger.trace( "Got candidate {} to summon in", { player.pev.netname } );
-#endif
-                            // TEST
-                            if( true ) {
-                                m_state = vanisher_state::on_search;
-                                m_next_retire = g_Engine.time + m_retire_time;
-                                return;
-                            }
-
-                            vanisher.m_hEnemy = EHandle( player );
-                        }
-
-                        m_state = vanisher_state::on_charging;
-                    }
-
-                    break;
-                }
-                case vanisher_state::on_charging:
-                {
-                    auto vanisher = m_hvanisher;
-
-                    if( vanisher is null )
-                    {
-                        m_next_summon = 0;
-                        m_state = vanisher_state::on_wait;
-                        return;
-                    }
-
-                    if( !vanisher.m_hEnemy.IsValid() || vanisher.m_hEnemy.GetEntity() is null )
-                    {
-#if SERVER
-                        m_Logger.trace( "Lost sight of player enemy. retiring in {}", { m_retire_time } );
-#endif
-                        vanisher.SetState( MONSTERSTATE_IDLE ); // So it roams a bit.
-                        m_state = vanisher_state::on_search;
-                        m_next_retire = g_Engine.time + m_retire_time;
-                    }
-                    else
-                    {
-                        // -TODO Make the zombie lose m_hEnemy
-                        vanisher.m_hEnemy = EHandle( null );
-                    }
-
-                    break;
-                }
-                case vanisher_state::on_search:
-                {
-                    auto vanisher = m_hvanisher;
-
-                    if( vanisher is null )
-                    {
-                        m_next_summon = 0;
-                        m_state = vanisher_state::on_wait;
-                        return;
-                    }
-
-                    if( g_Engine.time > m_next_retire )
-                    {
-                        TraceResult tr;
-                        g_Utility.TraceLine( vanisher.pev.origin + Vector( 0, 0, 90 ), vanisher.pev.origin + Vector( 0, 0, -90 ), ignore_monsters, vanisher.edict(), tr );
-                        g_Utility.DecalTrace( tr, DECAL_SCORCH1 );
-
-                        vanisher.SetState( MONSTERSTATE_PLAYDEAD );
-                        vanisher.m_scriptState = SCRIPT_WAIT;
-                        vanisher.pev.sequence = vanisher_sequences::submerge;
-                        vanisher.pev.spawnflags |= 32; // SF_SCRIPT_NOINTERRUPT
-
-                        m_state = vanisher_state::on_leave;
-                    }
-                    else if( vanisher.m_hEnemy.IsValid() && vanisher.m_hEnemy.GetEntity() !is null )
-                    {
-                        m_state = vanisher_state::on_charging;
-#if SERVER
-                        m_Logger.trace( "Found a new enemy {}. restoring to previous state", { vanisher.m_hEnemy.GetEntity().pev.netname } );
-#endif
-                    }
-                    break;
-                }
-                case vanisher_state::on_leave:
-                {
-                    auto vanisher = m_hvanisher;
-
-                    if( vanisher is null )
-                    {
-                        // Set next summon time.
-                        m_next_summon = g_Engine.time + float(
-                            m_min_cooldown + 
-                                ( m_max_cooldown - m_min_cooldown ) *
-                                    ( g_Engine.maxClients - g_PlayerFuncs.GetNumPlayers() ) /
-                                        ( g_Engine.maxClients - 1 )
-                        );
-#if SERVER
-                        m_Logger.trace( "Vanisher npc gone. summoning again in {}", { m_next_summon } );
-#endif
-                        m_state = vanisher_state::on_wait;
-                    }
-                    else
-                    {
-                        vanisher.StudioFrameAdvance();
-                        /*
-                        vanisher.UpdateOnRemove();
-                        vanisher.pev.flags |= FL_KILLME;
-                        vanisher.pev.targetname = 0;
-                        @self.pev.owner = null;
-                        */
-                    }
-
-                    break;
+                    players.insertLast( candidate );
                 }
             }
+
+            if( players.length() <= 0 )
+            {
+                pev.nextthink = g_Engine.time + 0.1f;
+                return;
+            }
+
+#if SERVER
+            string str_players_size = "";
+            for( uint ui = 0; ui < player_names.length(); ui++ ) {
+                str_players_size += "\n{}";
+            }
+            string str_deb;
+            snprintf( str_deb, "Time to summon! Enumerated player candidates: %1", str_players_size );
+            m_Logger.trace( str_deb, player_names );
+#endif
+
+            auto player = players[ Math.RandomLong( 0, players.length() - 1 ) ];
+
+            if( player !is null )
+            {
+                pev.nextthink = g_Engine.time + 4.0f;
+                m_iEnemy = player.entindex();
+                g_EntityFuncs.SetOrigin( self, player.pev.origin );
+
+#if SERVER
+                m_Logger.info( "Got candidate {} to summon in {} seconds", { player.pev.netname, ( pev.nextthink - g_Engine.time ) } );
+#endif
+
+                SetThink( ThinkFunction( this.state_emerge ) );
+                return;
+            }
+
+            pev.nextthink = g_Engine.time + 0.1f;
+        }
+
+        void state_emerge()
+        {
+            auto vanisher = create_vanisher();
+
+            if( vanisher !is null )
+            {
+                vanisher.pev.rendermode = kRenderTransAdd;
+                vanisher.pev.renderamt = 0;
+
+                /*
+                * Somehow i didn't managed to make this work propertly.
+                * Seems the AI is fighting it. i've 1:1 scripted.cpp in the HLSDK but nope.
+                * So here's this shity hack as usual spawning stupid entities.
+                */
+
+                dictionary kv_pair;
+                kv_pair[ "target" ] = string(self.pev.targetname);
+                kv_pair[ "targetname" ] = "npc_vanisher_sequence";
+                kv_pair[ "m_iszEntity" ] = "npc_vanisher";
+                kv_pair[ "m_iszPlay" ] = "ventclimb";
+                kv_pair[ "m_iszIdle" ] = "ventclimbidle";
+                kv_pair[ "m_flRadius" ] = "512";
+                kv_pair[ "m_fMoveTo" ] = "4";
+                kv_pair[ "spawnflags" ] = "96"; // ( verride AI | No Interruptions )
+
+                auto CineAI = g_EntityFuncs.CreateEntity( "scripted_sequence", kv_pair, true );
+
+                if( CineAI !is null )
+                {
+                    m_CineAI = CineAI.entindex();
+
+                    TraceResult tr;
+                    g_Utility.TraceLine( vanisher.pev.origin + Vector( 0, 0, 90 ), vanisher.pev.origin + Vector( 0, 0, -90 ), ignore_monsters, vanisher.edict(), tr );
+                    g_Utility.DecalTrace( tr, DECAL_SCORCH1 );
+                    g_EntityFuncs.SetOrigin( CineAI, tr.vecEndPos );
+
+                    SetThink( ThinkFunction( this.state_onground ) );
+                    pev.nextthink = g_Engine.time + 1.4f;
+                    return;
+                }
+            }
+
+            pev.nextthink = g_Engine.time + 0.1f;
+        }
+
+        void state_onground()
+        {
+            auto CineAI = g_EntityFuncs.Instance( m_CineAI );
+            m_CineAI = 0;
+
+            auto vanisher = m_hvanisher;
+
+            vanisher.pev.rendermode = kRenderNormal;
+
+            auto direction = ( g_EntityFuncs.Instance( m_iEnemy ).pev.origin - vanisher.pev.origin );
+            direction.z = 0;
+            g_EngineFuncs.VecToAngles( direction, m_hvanisher.pev.angles );
+
+            if( CineAI !is null )
+            {
+                CineAI.Use( self, self, USE_TOGGLE, 303 );
+            }
+            else
+            {
+                g_EntityFuncs.FireTargets( "npc_vanisher_sequence", self, self, USE_TOGGLE, 303 );
+            }
+
+            SetThink( ThinkFunction( this.state_finish_emerge ) );
+            pev.nextthink = g_Engine.time + 0.1f;
+        }
+
+        void state_finish_emerge()
+        {
+            auto vanisher = m_hvanisher;
+
+            pev.nextthink = g_Engine.time + 0.1f;
+
+            if( vanisher.m_scriptState == SCRIPT_PLAYING ) {
+                return;
+            }
+
+            auto CineAI = g_EntityFuncs.Instance( m_CineAI );
+
+            if( CineAI !is null )
+            {
+                g_EntityFuncs.Remove( CineAI );
+            }
+
+            auto enemy = g_EntityFuncs.Instance( m_iEnemy );
+            vanisher.PushEnemy( enemy, enemy.pev.origin );
+
+            m_CineAI = 0;
+
+            SetThink( ThinkFunction( this.state_stalk ) );
+        }
+
+        void state_stalk()
+        {
+            if( !entity_state() ) // Retire if it's been turn off by the mapper.
+            {
+                SetThink( ThinkFunction( this.state_retire ) );
+                pev.nextthink = g_Engine.time + 0.1f;
+                return;
+            }
+
+            auto vanisher = m_hvanisher;
+
+            if( vanisher.pev.frags <= 0 )
+            {
+                vanisher.pev.health -= 1.0f;
+                if( int(vanisher.pev.health) <= 0 ) // Who the fuck did this a float :madge:
+                {
+#if SERVER
+                    m_Logger.trace( "Run out of health. retiring in {}", { m_retire_time } );
+#endif
+                    pev.nextthink = g_Engine.time + m_retire_time;
+                    SetThink( ThinkFunction( this.state_retire ) );
+                    vanisher.pev.health = 1.0f;
+                    return;
+                }
+                else
+                {
+                    vanisher.pev.frags = 50;
+                    auto player = g_EntityFuncs.FindEntityInSphere( null, vanisher.pev.origin, 2000, "player", "classname" );
+#if SERVER
+                    m_Logger.trace( "Lost sight of player enemy. Getting new player {}", { player.pev.netname } );
+#endif
+                    vanisher.PushEnemy( player, player.pev.origin );
+                }
+            }
+            else if( !vanisher.m_hEnemy.IsValid() || vanisher.m_hEnemy.GetEntity() is null )
+            {
+                // -TODO Dafuck observers!?
+                auto player = g_EntityFuncs.FindEntityInSphere( null, vanisher.pev.origin, 2000, "player", "classname" );
+#if SERVER
+                m_Logger.trace( "Lost sight of player enemy. Getting new player {}", { player.pev.netname } );
+#endif
+                vanisher.PushEnemy( player, player.pev.origin );
+            }
+            else if( !vanisher.m_hEnemy.GetEntity().FVisible( vanisher, false ) )
+            {
+                vanisher.pev.frags--; // frags defines it's stand time
+            }
+
+            pev.nextthink = g_Engine.time + 0.1f;
+        }
+
+        void state_retire()
+        {
+            auto vanisher = m_hvanisher;
+
+            dictionary kv_pair;
+            kv_pair[ "killtarget" ] = "npc_vanisher";
+            kv_pair[ "targetname" ] = "npc_vanisher";
+            kv_pair[ "m_iszEntity" ] = "npc_vanisher";
+            kv_pair[ "m_iszPlay" ] = "ventclimbdown";
+            kv_pair[ "m_iszIdle" ] = "idle";
+            kv_pair[ "m_flRadius" ] = "512";
+            kv_pair[ "m_fMoveTo" ] = "1";
+            kv_pair[ "spawnflags" ] = "96"; // ( verride AI | No Interruptions )
+
+            auto CineAI = g_EntityFuncs.CreateEntity( "scripted_sequence", kv_pair, true );
+
+            TraceResult tr;
+            g_Utility.TraceLine( vanisher.pev.origin + Vector( 0, 0, 90 ), vanisher.pev.origin + Vector( 0, 0, -90 ), ignore_monsters, vanisher.edict(), tr );
+            g_Utility.DecalTrace( tr, DECAL_SCORCH1 );
+
+            g_EntityFuncs.SetOrigin( CineAI, tr.vecEndPos );
+            CineAI.pev.angles = vanisher.pev.angles;
+
+            m_CineAI = CineAI.entindex();
+
+            pev.nextthink = g_Engine.time + 1.4f;
+            SetThink( ThinkFunction( this.state_finish_retiring ) );
+        }
+
+        void state_finish_retiring()
+        {
+            auto CineAI = g_EntityFuncs.Instance( m_CineAI );
+            m_CineAI = 0;
+
+            CineAI.Use( self, self, USE_ON, 0 );
+
+            // Set next summon time.
+            pev.nextthink = g_Engine.time + float(
+                m_min_cooldown + 
+                    ( m_max_cooldown - m_min_cooldown ) *
+                        ( g_Engine.maxClients - g_PlayerFuncs.GetNumPlayers() ) /
+                            ( g_Engine.maxClients - 1 )
+            );
+
+#if SERVER
+            m_Logger.info( "Vanisher npc gone. summoning again in {}", { ( pev.nextthink - g_Engine.time ) } );
+#endif
+
+            SetThink( ThinkFunction( this.state_find_candidate ) );
         }
 
         void attack( CBasePlayer@ player )
@@ -284,7 +391,7 @@ namespace vanisher
 
             CBaseEntity@ teleport = null;
 
-            while( ( @teleport = g_EntityFuncs.FindEntityByTargetname( teleport, "info_vanisher_destination" ) ) !is null )
+            while( ( @teleport = g_EntityFuncs.FindEntityByClassname( teleport, "info_vanisher_destination" ) ) !is null )
             {
                 auto vanisher_teleport = cast<CVanisherTargets@>( CastToScriptClass( teleport ) );
 
