@@ -38,6 +38,10 @@
 
     m_information(string) : "Information" : "" : "If the string ends with '.txt' it will open a external file located in scripts/maps/backrooms_survey/data/ with the given name."
     name(string) : "Name in menu" : ""
+
+    m_trigger_on_picture(target_destination) : "[Trigger] when pictured" : "" : "Trigger when a picture is taken. this happen only once for each player. the player is the activator"
+    m_trigger_on_watch(target_destination) : "[Trigger] when watch" : "" : "Trigger when a the player is watching the picture and reading the information. the player is the activator"
+
     target(string) : "[Target] Entity to render when picturing" : "" : "This uses env_render_individual to apply specific rendering settings"
     target_rendermode(choices) : "[Target] Render Mode" : -1 =
     [
@@ -101,4 +105,6 @@
     m_min_cooldown(integer) : "Minimun cooldown time" : 1200
     m_max_cooldown(integer) : "Maximun cooldown time" : 6000
     m_retire_time(integer) : "Idle time until retire" : 10
+    m_health(integer) : "Health until vanish" : 10
+    m_frags(integer) : "Frags per health state" : 100
 ]

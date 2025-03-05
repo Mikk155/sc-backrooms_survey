@@ -216,6 +216,8 @@ namespace camera
 
                             hud_msg.holdTime = 10.0f;
                             g_PlayerFuncs.HudMessage( player, hud_msg, env_info.buffer );
+
+                            env_info.FireTarget( env_info.m_trigger_on_watch, player );
                         }
                     }
                 }
@@ -458,6 +460,8 @@ namespace camera
                             }
                         }
                     }
+
+                    env_info.FireTarget( env_info.m_trigger_on_picture, player );
                 }
             }
 

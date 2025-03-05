@@ -14,10 +14,13 @@
 
 namespace camera
 {
-    class CEnvironmentInformation : ScriptBaseEntity
+    class CEnvironmentInformation : ScriptBaseEntity, CToggleState, CFireTarget
     {
         string buffer;
         string name;
+
+        string m_trigger_on_picture;
+        string m_trigger_on_watch;
 
         bool target_has_rendermode;
         RenderModes target_rendermode;
@@ -39,7 +42,11 @@ namespace camera
 
         bool KeyValue( const string& in key, const string& in value )
         {
-            if( key == "m_information" )
+            if( CFireTarget( key, value ) )
+            {
+                return true;
+            }
+            else if( key == "m_information" )
             {
                 if( value.EndsWith( ".txt" ) )
                 {
@@ -71,6 +78,16 @@ namespace camera
             else if( key == "name" )
             {
                 name = value;
+                return true;
+            }
+            else if( key == "m_trigger_on_picture" )
+            {
+                m_trigger_on_picture = value;
+                return true;
+            }
+            else if( key == "m_trigger_on_watch" )
+            {
+                m_trigger_on_watch = value;
                 return true;
             }
             else if( key == "target_rendermode" )
@@ -143,6 +160,11 @@ namespace camera
 #if SERVER
             m_Logger.trace( "Inserted env_info entity {} as {} with data:\n{}\n", { self.entindex(), name, buffer } );
 #endif
+        }
+
+        void Use( CBaseEntity@ activator, CBaseEntity@ caller, USE_TYPE use_type, float value )
+        {
+            entity_state( use_type );
         }
     }
 }

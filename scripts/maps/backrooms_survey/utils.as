@@ -1,10 +1,3 @@
-#include "baseclass/CFireTarget"
-#include "baseclass/CToggleState"
-#if SERVER
-#include "utils/CLogger"
-#endif
-#include "utils/CRendering"
-
 // Array of CTextMenu for each player.
 array<CTextMenu@> menus = {};
 

@@ -12,6 +12,15 @@
 *       - Mikk155 - Author -
 */
 
+#include "baseclass/CFireTarget"
+#include "baseclass/CToggleState"
+
+#if SERVER
+#include "utils/CLogger"
+#endif
+
+#include "utils/CRendering"
+
 #include "utils"
 
 #include "entities/CEnvironmentInformation"

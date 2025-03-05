@@ -14,7 +14,7 @@
 
 namespace vanisher
 {
-    class CNPCVanisher : ScriptBaseEntity, CToggleState
+    class CNPCVanisher : ScriptBaseEntity, CToggleState, CFireTarget
     {
         int m_CineAI;
         int m_iEnemy;
@@ -23,6 +23,9 @@ namespace vanisher
         int m_min_cooldown = 1200;
         int m_max_cooldown = 6000;
         int m_retire_time = 10;
+
+        int m_frags = 100;
+        int m_health = 10;
 
         CBaseMonster@ m_hvanisher
         {
@@ -51,7 +54,11 @@ namespace vanisher
 
         bool KeyValue( const string& in key, const string& in value )
         {
-            if( key == "m_min_cooldown" )
+            if( CFireTarget( key, value ) )
+            {
+                return true;
+            }
+            else if( key == "m_min_cooldown" )
             {
                 m_min_cooldown = atoi( value );
                 return true;
@@ -71,10 +78,7 @@ namespace vanisher
 
         CBaseMonster@ create_vanisher()
         {
-            CBaseEntity@ entity = null;
-
-            for( int i = 0; entity is null and i <= 3; i++ ) // i recall sometimes AS randomly fails so try again if needed.
-                @entity = g_EntityFuncs.Create( "monster_zombie", pev.origin, pev.angles, true, self.edict() );
+            auto entity = g_EntityFuncs.Create( "monster_zombie", pev.origin, pev.angles, true, self.edict() );
 
             g_EntityFuncs.DispatchKeyValue( entity.edict(), "freeroam", "2" );
             g_EntityFuncs.DispatchKeyValue( entity.edict(), "bloodcolor", "1" );
@@ -82,8 +86,8 @@ namespace vanisher
             g_EntityFuncs.DispatchKeyValue( entity.edict(), "model", "models/brp/npcs/vanisher.mdl" );
             g_EntityFuncs.DispatchKeyValue( entity.edict(), "displayname", "Vanisher" );
             g_EntityFuncs.DispatchKeyValue( entity.edict(), "targetname", "npc_vanisher" );
-            g_EntityFuncs.DispatchKeyValue( entity.edict(), "health", "10" );
-            g_EntityFuncs.DispatchKeyValue( entity.edict(), "frags", "50" );
+            g_EntityFuncs.DispatchKeyValue( entity.edict(), "health", m_health );
+            g_EntityFuncs.DispatchKeyValue( entity.edict(), "frags", m_frags );
 
             g_EntityFuncs.DispatchSpawn( entity.edict() );
 
@@ -305,7 +309,7 @@ namespace vanisher
                 }
                 else
                 {
-                    vanisher.pev.frags = 50;
+                    vanisher.pev.frags = m_frags;
                     auto player = g_EntityFuncs.FindEntityInSphere( null, vanisher.pev.origin, 2000, "player", "classname" );
 #if SERVER
                     m_Logger.trace( "Lost sight of player enemy. Getting new player {}", { player.pev.netname } );
