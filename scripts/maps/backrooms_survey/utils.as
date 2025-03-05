@@ -48,7 +48,6 @@ CBaseEntity@ get_camera( int index )
 
     if( camera !is null )
     {
-        camera.pev.spawnflags |= 4; // Freeze Player
         camera.pev.spawnflags |= 256; // Player Invulnerable
 
         trigger_cameras[ index - 1 ] = EHandle( camera );

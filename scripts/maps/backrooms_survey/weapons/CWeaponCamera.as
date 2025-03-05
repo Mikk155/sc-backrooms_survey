@@ -75,6 +75,9 @@ namespace camera
         sprint_state m_sprint_state;
         float m_flNextSprintTime;
 
+        // If watching a picture. this is greater than the engine's time
+        float watching_picture;
+
         private CBasePlayer@ m_hPlayer
         {
             get const   { return cast<CBasePlayer@>( self.m_hPlayer.GetEntity() ); }
@@ -218,6 +221,9 @@ namespace camera
                             g_PlayerFuncs.HudMessage( player, hud_msg, env_info.buffer );
 
                             env_info.FireTarget( env_info.m_trigger_on_watch, player );
+
+                            watching_picture = g_Engine.time + env_info.m_watch_time;
+                            player.pev.button = 0;
                         }
                     }
                 }
@@ -237,9 +243,31 @@ namespace camera
             if( player is null )
                 return;
 
+            // Are we watching a picture?
+            if( watching_picture > g_Engine.time )
+            {
+                // aren't space and enter the global language of "skip cinematic"?
+                if( player.pev.button != 0 )
+                {
+                    auto camera = get_camera( player.entindex() );
+
+                    if( camera !is null )
+                    {
+                        camera.Use( player, player, USE_OFF, 0 );
+                    }
+
+                    hud_msg.holdTime = 0.0f;
+                    g_PlayerFuncs.HudMessage( player, hud_msg, "\n" );
+
+                    // .-TODO Check for flashlight active and remove/reset screenfade at peak level.
+
+                    watching_picture = 0;
+                }
+                return;
+            }
+
             if( ( player.pev.button & IN_USE ) != 0
-            and m_flNextPictureTime < g_Engine.time
-            and ( player.pev.flags & FL_GODMODE ) == 0 ) // Player is not watching a picture
+            and m_flNextPictureTime < g_Engine.time ) // Player is not watching a picture
             {
                 auto user_data = player.GetUserData();
 
