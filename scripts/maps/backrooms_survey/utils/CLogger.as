@@ -12,19 +12,33 @@
 *       - Mikk155 - Author -
 */
 
+/*
+*   This is a simple logger to have things organized and to not be removing messages from the code afterwards
+*   If you use this please make sure to remove this for release or use pre proccessors as i do.
+*
+*   - error
+*   - warn
+*       - Always print + log
+*   - info
+*       - developer >= 1
+*   - trace
+*       - developer >= 2
+*/
+
 class CLogger
 {
-    string name;
+    private string _name_;
 
-    CLogger( const string& in _name )
+    CLogger( const string& in module_name )
     {
-        name = _name;
+        this._name_ = module_name;
+        this.trace( "Logger Initialized." );
     }
 
-    private string _format_( const string &in fmt, array<string>@ args )
+    private string _format_( const string &in fmt, array<string>@ args, bool write = false )
     {
         string str;
-        snprintf( str, "[%1] %2\n", this.name, fmt );
+        snprintf( str, "[%1] %2\n", this._name_, fmt );
 
         for( uint ui = 0; ui < args.length(); ui++ )
         {
@@ -37,17 +51,32 @@ class CLogger
                 str = str.SubString( 0, index ) + args[ui] + str.SubString( index + 2 );
             }
         }
+
+        if( write )
+        {
+            auto file = g_FileSystem.OpenFile( "scripts/maps/store/backrooms_survey_log.txt", OpenFile::APPEND );
+
+            if( file !is null )
+            {
+                auto datetime = DateTime();
+                string datestring;
+                snprintf( datestring, "%1th at %2:%3 > %4", datetime.GetDayOfMonth(), datetime.GetHour(), datetime.GetMinutes(), str );
+
+                file.Write( datestring );
+            }
+        }
+
         return str;
     }
 
     void error( const string &in fmt, array<string>@ args = {} )
     {
-        g_Game.AlertMessage( at_error, this._format_( fmt, args ) );
+        g_Game.AlertMessage( at_error, this._format_( fmt, args, true ) );
     }
 
     void warn( const string &in fmt, array<string>@ args = {} )
     {
-        g_Game.AlertMessage( at_warning, this._format_( fmt, args ) );
+        g_Game.AlertMessage( at_warning, this._format_( fmt, args, true ) );
     }
 
     void info( const string &in fmt, array<string>@ args = {} )

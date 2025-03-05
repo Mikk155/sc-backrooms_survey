@@ -16,17 +16,20 @@
 
 namespace camera
 {
+    // Array of env_info entities
+    array<int> information_entities = {};
+
     class CPicture
     {
         Vector position;
         Vector angles;
-        EHandle handle;
+        int index;
 
-        CPicture( Vector _position, Vector _angles, EHandle _handle )
+        CPicture( Vector _position, Vector _angles, int _index )
         {
             position = _position;
             angles = _angles;
-            handle = _handle;
+            index = _index;
         }
     }
 
@@ -175,7 +178,7 @@ namespace camera
 
                 if( picture !is null )
                 {
-                    auto entity = picture.handle.GetEntity();
+                    auto entity = g_EntityFuncs.Instance( picture.index );
 
                     if( entity !is null )
                     {
@@ -404,18 +407,13 @@ namespace camera
 
             for( int ui = information_entities.length() - 1; ui >= 0; ui-- )
             {
-                auto ehandle = information_entities[ui];
+                auto entity = g_EntityFuncs.Instance( information_entities[ui] );
 
-                if( !ehandle.IsValid() )
+                if( entity is null || entity.pev.classname != "env_info" )
                 {
                     information_entities.removeAt(ui);
                     continue;
                 }
-
-                auto entity = ehandle.GetEntity();
-
-                if( entity is null || entity.pev.classname != "env_info" )
-                    continue;
 
                 auto env_info = cast<CEnvironmentInformation@>( CastToScriptClass( entity ) );
 
@@ -440,7 +438,7 @@ namespace camera
 
                 if( total_distance < 1000 && angle_yaw <= 60.0 && angle_upd <= 50.0 )
                 {
-                    CPicture@ picture = CPicture( player.pev.origin + player.pev.view_ofs, player.pev.v_angle, ehandle );
+                    CPicture@ picture = CPicture( player.pev.origin + player.pev.view_ofs, player.pev.v_angle, entity.entindex() );
 
                     if( picture !is null )
                     {

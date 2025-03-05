@@ -40,16 +40,12 @@ namespace vanisher
         {
             if( !entity_state( use_type ) )
             {
-                auto vanisher = m_hvanisher;
-
-                if( vanisher !is null )
-                {
 #if SERVER
+                if( m_hvanisher !is null )
+                {
                     m_Logger.warn( "Turned off NPC controller but the vanisher npc reference still exists. Removing..." );
-#endif
-                    // -TODO Should we play submerge animation?
-                    g_EntityFuncs.Remove( vanisher );
                 }
+#endif
             }
         }
 
@@ -275,10 +271,10 @@ namespace vanisher
                 g_EntityFuncs.Remove( CineAI );
             }
 
+            m_CineAI = 0;
+
             auto enemy = g_EntityFuncs.Instance( m_iEnemy );
             vanisher.PushEnemy( enemy, enemy.pev.origin );
-
-            m_CineAI = 0;
 
             SetThink( ThinkFunction( this.state_stalk ) );
         }

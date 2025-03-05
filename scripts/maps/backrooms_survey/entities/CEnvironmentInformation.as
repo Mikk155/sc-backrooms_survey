@@ -39,12 +39,12 @@ namespace camera
 
         bool KeyValue( const string& in key, const string& in value )
         {
-            if( key == "text_file" )
+            if( key == "m_information" )
             {
                 if( value.EndsWith( ".txt" ) )
                 {
                     string szpath;
-                    snprintf( szpath, "scripts/maps/backrooms_survey/data/%1.txt", value );
+                    snprintf( szpath, "scripts/maps/backrooms_survey/data/%1", value );
 
                     auto file = g_FileSystem.OpenFile( szpath, OpenFile::READ );
 
@@ -56,6 +56,10 @@ namespace camera
                             file.ReadLine( line );
                             snprintf( buffer, "%1\n%2", buffer, line );
                         }
+                    }
+                    else
+                    {
+                        m_Logger.warn( "Couldn't open file {} for env_info", { szpath } );
                     }
                 }
                 else
@@ -135,7 +139,7 @@ namespace camera
 
             g_EntityFuncs.SetOrigin( self, self.pev.origin );
 
-            information_entities.insertLast( EHandle( self ) );
+            information_entities.insertLast( self.entindex() );
 #if SERVER
             m_Logger.trace( "Inserted env_info entity {} as {} with data:\n{}\n", { self.entindex(), name, buffer } );
 #endif

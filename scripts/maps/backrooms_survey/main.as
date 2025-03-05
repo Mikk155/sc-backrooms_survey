@@ -122,7 +122,7 @@ HookReturnCode on_playertakedamage( DamageInfo@ pDamageInfo )
 
             try
             {
-                cast<vanisher::CNPCVanisher@>( CastToScriptClass( vanisher ) ).attack( victim );
+                cast<vanisher::CNPCVanisher@>( CastToScriptClass( attacker ) ).attack( victim );
             }
             catch
             {

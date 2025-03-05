@@ -36,8 +36,9 @@
         2: "Don't show glow sprite" : 0
     ]
 
-    text_file(string) : "Information" : "If the string ends with '.txt' it will open a external file located in scripts/maps/backrooms_survey/data/ with the given name."
-    target(string) : "[Target] Entity to render when picturing" : "This uses env_render_individual to apply specific rendering settings"
+    m_information(string) : "Information" : "" : "If the string ends with '.txt' it will open a external file located in scripts/maps/backrooms_survey/data/ with the given name."
+    name(string) : "Name in menu" : ""
+    target(string) : "[Target] Entity to render when picturing" : "" : "This uses env_render_individual to apply specific rendering settings"
     target_rendermode(choices) : "[Target] Render Mode" : -1 =
     [
         -1 : "Don't apply anything"

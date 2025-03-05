@@ -21,18 +21,6 @@ namespace vanisher
     CLogger@ m_Logger = CLogger( "NPC Vanisher" );
 #endif
 
-    enum vanisher_state
-    {
-        // Waiting for cooldown end.
-        on_wait = 0,
-        // summoned to a player. charging to said player.
-        on_charging,
-        // Touched the player or lose sight of the player.
-        on_search,
-        // Search ended. no new targets. leave to ground and wait.
-        on_leave
-    };
-
     enum vanisher_anims
     {
         idle = 0,

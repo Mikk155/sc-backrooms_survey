@@ -5,9 +5,6 @@
 #endif
 #include "utils/CRendering"
 
-// Array of env_info entities
-array<EHandle> information_entities = {};
-
 // Array of CTextMenu for each player.
 array<CTextMenu@> menus = {};
 
