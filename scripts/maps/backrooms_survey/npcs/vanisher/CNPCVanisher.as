@@ -23,7 +23,6 @@ namespace vanisher
         int m_min_cooldown = 1200;
         int m_max_cooldown = 6000;
         int m_retire_time = 10;
-
         int m_frags = 100;
         int m_health = 10;
 
@@ -71,6 +70,16 @@ namespace vanisher
             else if( key == "m_retire_time" )
             {
                 m_retire_time = atoi( value );
+                return true;
+            }
+            else if( key == "m_frags" )
+            {
+                m_frags = atoi( value );
+                return true;
+            }
+            else if( key == "m_health" )
+            {
+                m_health = atoi( value );
                 return true;
             }
             return false;
