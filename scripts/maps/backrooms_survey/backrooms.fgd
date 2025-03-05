@@ -16,9 +16,8 @@
     ]
 ]
 
-@BaseClass = CFireTarget
+@BaseClass = CFireTargetWithoutTarget
 [
-    target(target_destination) : "Target" : "" : "Fire one or multiple targets separated by a semicolon 'target1;target2' you can also set a custom trugger type for each of them for example 'trigger1#1;trigger2#1;trigger3#2' if not set we'll use 'm_usetype'"
     m_usetype(choices) : "Trigger State" : 3 =
     [
         0: "Off"
@@ -29,7 +28,12 @@
     m_killtarget(target_destination) : "Kill Target"
 ]
 
-@PointClass base( CToggleState ) = env_info : "environment information"
+@BaseClass base( CFireTargetWithoutTarget ) = CFireTarget
+[
+    target(target_destination) : "Target" : "" : "Fire one or multiple targets separated by a semicolon 'target1;target2' you can also set a custom trugger type for each of them for example 'trigger1#1;trigger2#1;trigger3#2' if not set we'll use 'm_usetype'"
+]
+
+@PointClass base( CToggleState, CFireTargetWithoutTarget ) = env_info : "environment information"
 [
     spawnflags(Flags) =
     [
@@ -38,6 +42,8 @@
 
     m_information(string) : "Information" : "" : "If the string ends with '.txt' it will open a external file located in scripts/maps/backrooms_survey/data/ with the given name."
     name(string) : "Name in menu" : ""
+
+    m_watch_time(float) : "Picture watch time" : 10 : "Time to watch this entity's pictures"
 
     m_trigger_on_picture(target_destination) : "[Trigger] when pictured" : "" : "Trigger when a picture is taken. this happen only once for each player. the player is the activator"
     m_trigger_on_watch(target_destination) : "[Trigger] when watch" : "" : "Trigger when a the player is watching the picture and reading the information. the player is the activator"

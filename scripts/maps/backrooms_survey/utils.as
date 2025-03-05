@@ -58,7 +58,6 @@ CBaseEntity@ get_camera( int index )
     return null;
 }
 
-const float M_PI = ( 180.0 / 3.14159265358979323846 );
 
 // Global hud params
 HUDTextParams hud_msg;

@@ -22,6 +22,8 @@ namespace camera
         string m_trigger_on_picture;
         string m_trigger_on_watch;
 
+        float m_watch_time = 10.0f;
+
         bool target_has_rendermode;
         RenderModes target_rendermode;
 
@@ -78,6 +80,11 @@ namespace camera
             else if( key == "name" )
             {
                 name = value;
+                return true;
+            }
+            else if( key == "m_watch_time" )
+            {
+                m_watch_time = atof(value);
                 return true;
             }
             else if( key == "m_trigger_on_picture" )

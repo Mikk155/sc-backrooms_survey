@@ -192,13 +192,13 @@ namespace camera
                             {
                                 camera.SetOrigin( picture.position );
                                 camera.pev.angles = picture.angles;
+                                g_EntityFuncs.DispatchKeyValue( camera.edict(), "wait", env_info.m_watch_time );
                                 camera.Use( player, player, USE_ON, 0 );
                             }
 
                             if( env_info.pev.target != "" )
                             {
-                                // -TODO Custom camera time? need to update rendering. holdTime and camera's wait
-                                auto render = g_Rendering.create( 10.0 );
+                                auto render = g_Rendering.create( env_info.m_watch_time );
 
                                 if( env_info.target_has_rendermode )
                                     render.rendermode = env_info.target_rendermode;
@@ -214,7 +214,7 @@ namespace camera
                                 render.add_player( player );
                             }
 
-                            hud_msg.holdTime = 10.0f;
+                            hud_msg.holdTime = env_info.m_watch_time;
                             g_PlayerFuncs.HudMessage( player, hud_msg, env_info.buffer );
 
                             env_info.FireTarget( env_info.m_trigger_on_watch, player );
@@ -433,8 +433,8 @@ namespace camera
                 float dot_right = DotProduct( g_Engine.v_right,     vec_ent_to_player );
                 float dot_updw = DotProduct( g_Engine.v_up,        vec_ent_to_player );
 
-                float angle_yaw = abs( atan2( dot_right, dot_prod ) * M_PI );
-                float angle_upd = abs( atan2( dot_updw, dot_prod ) * M_PI );
+                float angle_yaw = abs( atan2( dot_right, dot_prod ) * 57.29578 ); // ( 180.0 / 3.14159265358979323846 ) idk
+                float angle_upd = abs( atan2( dot_updw, dot_prod ) * 57.29578 );
 
                 auto total_distance = ( entity.Center() - player.pev.origin ).Length();
 
