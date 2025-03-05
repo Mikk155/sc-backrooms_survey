@@ -67,6 +67,7 @@ namespace camera
         bool m_nightvision;
         float m_nightvision_battery = 10000.0f;
         int m_nightvision_radius;
+        int m_nightvision_fog = 500;
 
         sprint_state m_sprint_state;
         float m_flNextSprintTime;
@@ -128,19 +129,8 @@ namespace camera
 
         void Holster( int skiplocal = 0 )
         {
-            auto player = m_hPlayer;
-
-            if( player is null )
-            {
-                if( m_nightvision )
-                {
-                    g_PlayerFuncs.ScreenFade( player, Vector( 0, 200, 20 ), 1.0f, 0.5f, 255.0f, FFADE_MODULATE );
-                }
-            }
-
+            shutdown_nightvision(m_nightvision);
             m_sprint_state = sprint_state::sprint_no;
-            m_nightvision = false;
-            m_nightvision_radius = 0;
         }
 
         void WeaponIdle()
@@ -328,7 +318,7 @@ namespace camera
 
             if( m_nightvision )
             {
-                if( m_nightvision_radius <= 40 ) {
+                if( m_nightvision_radius <= 100 ) {
                     m_nightvision_radius++;
                 }
 
@@ -344,6 +334,24 @@ namespace camera
                     m.WriteByte(2);
                     m.WriteByte(1);
                 m.End();
+
+                if( m_nightvision_fog > 10 ) {
+                    m_nightvision_fog = Math.clamp( 10, 500, m_nightvision_fog - 9 );
+
+                    NetworkMessage fog( MSG_ONE_UNRELIABLE, NetworkMessages::Fog, player.edict() );
+                        fog.WriteShort(0);
+                        fog.WriteByte(1);
+                        fog.WriteCoord(0);
+                        fog.WriteCoord(0);
+                        fog.WriteCoord(0);
+                        fog.WriteShort(0);
+                        fog.WriteByte(0); // R
+                        fog.WriteByte(10); // G
+                        fog.WriteByte(0); // B
+                        fog.WriteShort(m_nightvision_fog); // StartDist
+                        fog.WriteShort(500); // EndDist
+                    fog.End();
+                }
 
                 m_nightvision_battery--;
 
@@ -377,7 +385,7 @@ namespace camera
                 msg.WriteCoord( tr.vecEndPos.x );
                 msg.WriteCoord( tr.vecEndPos.y );
                 msg.WriteCoord( tr.vecEndPos.z );
-                msg.WriteByte( 32 );
+                msg.WriteByte( 128 );
                 msg.WriteByte( 254 );
                 msg.WriteByte( 254 );
                 msg.WriteByte( 254 );
@@ -469,6 +477,11 @@ namespace camera
 
             if( m_nightvision )
             {
+                NetworkMessage mlight( MSG_ONE_UNRELIABLE, NetworkMessages::NetworkMessageType(12), player.edict() );
+                mlight.WriteByte( 0 );
+                mlight.WriteString( "z" );
+                mlight.End();
+
                 self.SendWeaponAnim( CoFCAMERA_HOLSTER );
                 g_PlayerFuncs.ScreenFade( player, Vector( 0, 200, 20 ), 1.0f, 0.5f, 100.0f, FFADE_STAYOUT | FFADE_MODULATE | FFADE_OUT );
                 g_SoundSystem.EmitSoundDyn( player.edict(), CHAN_WEAPON, "cof/guns/camera/charge.ogg", VOL_NORM, ATTN_NORM, 0, PITCH_NORM );
@@ -476,12 +489,47 @@ namespace camera
             }
             else
             {
-                m_nightvision_radius = 0;
+                shutdown_nightvision(true);
                 self.SendWeaponAnim( CoFCAMERA_DRAW_FIRST );
-                g_PlayerFuncs.ScreenFade( player, Vector( 0, 200, 20 ), 1.0f, 0.5f, 100.0f, FFADE_MODULATE );
-                g_SoundSystem.EmitSoundDyn( player.edict(), CHAN_WEAPON, "cof/guns/camera/lever.ogg", VOL_NORM, ATTN_NORM, 0, PITCH_NORM );
                 self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 1.63f;
             }
+        }
+
+        void shutdown_nightvision( bool was_on )
+        {
+            auto player = m_hPlayer;
+
+            if( player !is null )
+            {
+                if( was_on )
+                {
+                    NetworkMessage fog( MSG_ONE_UNRELIABLE, NetworkMessages::Fog, player.edict() );
+                        fog.WriteShort(0);
+                        fog.WriteByte(0);
+                        fog.WriteCoord(0);
+                        fog.WriteCoord(0);
+                        fog.WriteCoord(0);
+                        fog.WriteShort(0);
+                        fog.WriteByte(0); // R
+                        fog.WriteByte(10); // G
+                        fog.WriteByte(0); // B
+                        fog.WriteShort(10); // StartDist
+                        fog.WriteShort(500); // EndDist
+                    fog.End();
+
+                    NetworkMessage mlight( MSG_ONE_UNRELIABLE, NetworkMessages::NetworkMessageType(12), player.edict() );
+                    mlight.WriteByte( 0 );
+                    mlight.WriteString( "m" );
+                    mlight.End();
+
+                    g_PlayerFuncs.ScreenFade( player, Vector( 0, 200, 20 ), 1.0f, 0.5f, 100.0f, FFADE_MODULATE );
+                    g_SoundSystem.EmitSoundDyn( player.edict(), CHAN_WEAPON, "cof/guns/camera/lever.ogg", VOL_NORM, ATTN_NORM, 0, PITCH_NORM );
+                }
+            }
+
+            m_nightvision = false;
+            m_nightvision_radius = 0;
+            m_nightvision_fog = 500;
         }
 
         void Reload()
