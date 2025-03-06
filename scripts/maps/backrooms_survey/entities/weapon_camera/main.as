@@ -21,6 +21,7 @@
 
 #include "../../utils/CRendering"
 #include "../../utils/hud_message"
+#include "../../utils/menu"
 
 #include "CEnvironmentInformation"
 #include "CWeaponCamera"

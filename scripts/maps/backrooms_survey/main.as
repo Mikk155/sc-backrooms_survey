@@ -21,13 +21,9 @@ namespace main
         // Initialize player-basis arrays
         for( int i = 0; i < g_Engine.maxClients; i++ ) {
             trigger_cameras.insertLast( EHandle(null) );
-            menus.insertLast( null );
         }
     }
 }
-
-// Array of CTextMenu for each player.
-array<CTextMenu@> menus = {};
 
 // Array of trigger_camera for each player
 array<EHandle> trigger_cameras = {};

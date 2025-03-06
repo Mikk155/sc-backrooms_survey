@@ -18,8 +18,6 @@ namespace camera
 {
     class CWeaponCamera : ScriptBasePlayerWeaponEntity
     {
-        float m_flNextPictureTime;
-
         bool m_nightvision;
         float m_nightvision_battery = 10000.0f;
         int m_nightvision_radius;
@@ -222,7 +220,7 @@ namespace camera
             }
 
             if( ( player.pev.button & IN_USE ) != 0
-            and m_flNextPictureTime < g_Engine.time ) // Player is not watching a picture
+            and watching_picture < g_Engine.time ) // Player is not watching a picture
             {
                 auto user_data = player.GetUserData();
 
@@ -232,40 +230,13 @@ namespace camera
 
                 if( pictures_t.length() > 0 )
                 {
-                    @menus[ player.entindex() - 1 ] = null;
-
-                    auto menu = CTextMenu( TextMenuPlayerSlotCallback( this.picture_watch ) );
-
-                    if( menu !is null )
-                    {
-                        string str_print;
-
-                        snprintf( str_print, "\\w%1\\r\n", "Camera pictures" );
-                        menu.SetTitle( str_print );
-
-                        for( uint ui = 0; ui < pictures_t.length(); ui++ )
-                        {
-                            string name = pictures_t[ui];
-
-                            snprintf( str_print, "\\y%1\\%2\n", name, ( ui == pictures_t.length() - 1 ? "g" : "r" ) );
-
-                            menu.AddItem( str_print, any( name ) );
-                        } // when fucking "goto" x[
-
-                        menu.Register();
-                        menu.Open( 20.0f, 0, player );
-
-                        @menus[ player.entindex() - 1 ] = menu;
-
-                        m_flNextPictureTime = g_Engine.time + 0.5f;
-                    }
+                    menu::open( player, "Camera pictures", @pictures_t, TextMenuPlayerSlotCallback( this.picture_watch ) );
                 }
                 else
                 {
                     hud_message::param.channel = 4;
                     hud_message::param.holdTime = 5.0f;
                     hud_message::print( player, "There are not any useful picture yet.\n" );
-                    m_flNextPictureTime = g_Engine.time + 0.5f;
                 }
             }
 
