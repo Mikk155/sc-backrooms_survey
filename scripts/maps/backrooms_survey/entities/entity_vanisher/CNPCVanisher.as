@@ -16,7 +16,6 @@ namespace vanisher
 {
     class CNPCVanisher : ScriptBaseEntity, CToggleState, CFireTarget
     {
-        int m_CineAI;
         int m_iEnemy;
 
         // Keyvalues
@@ -48,6 +47,10 @@ namespace vanisher
                     m_Logger.warn( "Turned off NPC controller but the vanisher npc reference still exists. Removing..." );
                 }
 #endif
+            }
+            else
+            {
+                pev.nextthink = g_Engine.time;
             }
         }
 
@@ -201,17 +204,14 @@ namespace vanisher
 
             if( vanisher !is null )
             {
-                vanisher.pev.rendermode = kRenderTransAdd;
-                vanisher.pev.renderamt = 0;
-
                 /*
-                * Somehow i didn't managed to make this work propertly.
-                * Seems the AI is fighting it. i've 1:1 scripted.cpp in the HLSDK but nope.
-                * So here's this shity hack as usual spawning stupid entities.
+                * I've 1:1 scripted.cpp in the HLSDK but nope.
+                * Seems sven cum has some hacky stuff going on so i made this stupid entity spawn.
                 */
 
                 dictionary kv_pair;
                 kv_pair[ "targetname" ] = "npc_vanisher_sequence";
+                kv_pair[ "killtarget" ] = "npc_vanisher_sequence";
                 kv_pair[ "m_iszEntity" ] = "npc_vanisher";
                 kv_pair[ "m_iszPlay" ] = "ventclimb";
                 kv_pair[ "m_iszIdle" ] = "ventclimbidle";
@@ -223,43 +223,23 @@ namespace vanisher
 
                 if( CineAI !is null )
                 {
-                    m_CineAI = CineAI.entindex();
-
                     TraceResult tr;
                     g_Utility.TraceLine( vanisher.pev.origin + Vector( 0, 0, 90 ), vanisher.pev.origin + Vector( 0, 0, -90 ), ignore_monsters, vanisher.edict(), tr );
                     g_Utility.DecalTrace( tr, DECAL_SCORCH1 );
                     g_EntityFuncs.SetOrigin( CineAI, tr.vecEndPos );
 
+                    FireTarget( "npc_vanisher_sequence", self, self, 1.4f );
+
                     pev.nextthink = g_Engine.time + 1.4f;
-                    SetThink( ThinkFunction( this.state_onground ) );
+                    SetThink( ThinkFunction( this.state_finish_emerge ) );
+
+                    auto direction = ( g_EntityFuncs.Instance( m_iEnemy ).pev.origin - vanisher.pev.origin );
+                    direction.z = 0;
+                    g_EngineFuncs.VecToAngles( direction, vanisher.pev.angles );
+
+                    g_EntityFuncs.SetOrigin( vanisher, tr.vecEndPos - Vector( 0, 0, 100 ) );
                 }
             }
-        }
-
-        void state_onground()
-        {
-            auto CineAI = g_EntityFuncs.Instance( m_CineAI );
-            m_CineAI = 0;
-
-            auto vanisher = m_hvanisher;
-
-            vanisher.pev.rendermode = kRenderNormal;
-
-            auto direction = ( g_EntityFuncs.Instance( m_iEnemy ).pev.origin - vanisher.pev.origin );
-            direction.z = 0;
-            g_EngineFuncs.VecToAngles( direction, m_hvanisher.pev.angles );
-
-            if( CineAI !is null )
-            {
-                CineAI.Use( self, self, USE_TOGGLE, 303 );
-            }
-            else
-            {
-                g_EntityFuncs.FireTargets( "npc_vanisher_sequence", self, self, USE_TOGGLE, 303 );
-            }
-
-            SetThink( ThinkFunction( this.state_finish_emerge ) );
-            pev.nextthink = g_Engine.time + 0.1f;
         }
 
         void state_finish_emerge()
@@ -271,15 +251,6 @@ namespace vanisher
             if( vanisher.m_scriptState == SCRIPT_PLAYING ) {
                 return;
             }
-
-            auto CineAI = g_EntityFuncs.Instance( m_CineAI );
-
-            if( CineAI !is null )
-            {
-                g_EntityFuncs.Remove( CineAI );
-            }
-
-            m_CineAI = 0;
 
             auto enemy = g_EntityFuncs.Instance( m_iEnemy );
             vanisher.PushEnemy( enemy, enemy.pev.origin );
@@ -359,18 +330,7 @@ namespace vanisher
             g_EntityFuncs.SetOrigin( CineAI, tr.vecEndPos );
             CineAI.pev.angles = vanisher.pev.angles;
 
-            m_CineAI = CineAI.entindex();
-
-            pev.nextthink = g_Engine.time + 1.4f;
-            SetThink( ThinkFunction( this.state_finish_retiring ) );
-        }
-
-        void state_finish_retiring()
-        {
-            auto CineAI = g_EntityFuncs.Instance( m_CineAI );
-            m_CineAI = 0;
-
-            CineAI.Use( self, self, USE_ON, 0 );
+            FireTarget( "npc_vanisher", self, self, 1.4 );
 
             // Set next summon time.
             pev.nextthink = g_Engine.time + float(

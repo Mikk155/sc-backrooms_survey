@@ -41,7 +41,7 @@ mixin class CFireTarget
     // CEntityFuncs::FireTargets's "delay" doesn't even fucking works lol
     void FireTarget_Delayed( const string&in target, EHandle activator, EHandle caller )
     {
-        FireTarget( target, ( activator.IsValid() ? activator.GetEntity() : null ), ( caller.IsValid() ? caller.GetEntity() : null ), true );
+        FireTarget( target, ( activator.IsValid() ? activator.GetEntity() : null ), ( caller.IsValid() ? caller.GetEntity() : null ), 0, true );
     }
 
     void FireTarget( const string&in target, CBaseEntity@ activator, CBaseEntity@ caller = null, float cdelay = 0, bool delayed = false )
