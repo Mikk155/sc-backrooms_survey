@@ -110,6 +110,17 @@ namespace ReflectionWorkspace
         }
     }
 
+    HookReturnCode PlayerPostThink( CBasePlayer@ player )
+    {
+        CHookModule@ pHookModule = CHookModule( "PlayerPostThink" );
+
+        @pHookModule.player = player;
+
+        g_Reflection.Call( "on_playerthink", @pHookModule );
+
+        return HOOK_CONTINUE;
+    }
+
     HookReturnCode PlayerSpawn( CBasePlayer@ player )
     {
         CHookModule@ pHookModule = CHookModule( "PlayerSpawn" );
@@ -174,8 +185,12 @@ void MapInit()
 {
     g_Reflection.Register();
 
+    if( g_Hooks.RegisterHook( Hooks::Player::PlayerPostThink, @ReflectionWorkspace::PlayerPostThink ) )
+        g_Reflection.m_Logger.info( "Registered function PlayerPostThink" );
+
     if( g_Hooks.RegisterHook( Hooks::Player::PlayerTakeDamage, @ReflectionWorkspace::PlayerTakeDamage ) )
         g_Reflection.m_Logger.info( "Registered function PlayerTakeDamage" );
+
     if( g_Hooks.RegisterHook( Hooks::Player::PlayerSpawn, @ReflectionWorkspace::PlayerSpawn ) )
         g_Reflection.m_Logger.info( "Registered function PlayerSpawn" );
 
