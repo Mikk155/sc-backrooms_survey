@@ -35,7 +35,7 @@ namespace vanisher
 
         void Use( CBaseEntity@ activator, CBaseEntity@ caller, USE_TYPE use_type, float value )
         {
-            entity_state( use_type );
+            shouldtoggle( use_type );
         }
 
         void teleport( CBasePlayer@ player )

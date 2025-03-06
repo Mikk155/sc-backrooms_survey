@@ -19,10 +19,6 @@
 
 namespace ReflectionWorkspace
 {
-#if SERVER
-    CLogger@ m_Logger = CLogger( "Reflection" );
-#endif
-
     bool reflection_register = g_RegisterReflection();
 
     bool g_RegisterReflection()
@@ -36,7 +32,11 @@ namespace ReflectionWorkspace
 
     final class Reflection
     {
-        int Call( const string m_iszFunction )
+#if SERVER
+        CLogger@ m_Logger = CLogger( "Reflection" );
+#endif
+
+        int Call( const string m_iszFunction, CHookModule@ pHookInfo )
         {
             int f = 0;
 
@@ -48,9 +48,14 @@ namespace ReflectionWorkspace
                 {
                     f++;
 #if SERVER
-                    m_Logger.info( "Called \"{}::{}\"", { m_fFunction.GetNamespace(), m_fFunction.GetName() } );
+                    m_Logger.trace( "Called \"{}::{}\"", { m_fFunction.GetNamespace(), m_fFunction.GetName() } );
 #endif
-                    m_fFunction.Call();
+                    m_fFunction.Call( @pHookInfo );
+
+                    if( pHookInfo.stop )
+                    {
+                        break;
+                    }
                 }
             }
             return f;
@@ -90,7 +95,8 @@ namespace ReflectionWorkspace
     {
         void think()
         {
-            g_Reflection.Call( "On_MapThink" );
+            CHookModule@ pHookModule = CHookModule( "MapThink" );
+            g_Reflection.Call( "On_MapThink", @pHookModule );
             pev.nextthink = g_Engine.time + 0.1f;
         }
 
@@ -100,8 +106,66 @@ namespace ReflectionWorkspace
             self.pev.movetype = MOVETYPE_NONE;
             SetThink( ThinkFunction( this.think ) );
             pev.nextthink = g_Engine.time + 0.1f;
+            g_Reflection.m_Logger.info( "Registered function MapThink" );
         }
     }
+
+    HookReturnCode PlayerSpawn( CBasePlayer@ player )
+    {
+        CHookModule@ pHookModule = CHookModule( "PlayerSpawn" );
+
+        @pHookModule.player = player;
+
+        g_Reflection.Call( "on_playerspawn", @pHookModule );
+
+        return HOOK_CONTINUE;
+    }
+
+    HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
+    {
+        CHookModule@ pHookModule = CHookModule( "PlayerTakeDamage" );
+
+        @pHookModule.victim = pDamageInfo.pVictim;
+        @pHookModule.player = cast<CBasePlayer@>( pHookModule.victim );
+        @pHookModule.attacker = ( pDamageInfo.pAttacker !is null ? pDamageInfo.pAttacker : pDamageInfo.pInflictor );
+        @pHookModule.inflictor = ( pDamageInfo.pInflictor !is null ? pDamageInfo.pInflictor : pDamageInfo.pAttacker );
+        pHookModule.damage = pDamageInfo.flDamage;
+        pHookModule.damage_bits = pDamageInfo.bitsDamageType;
+
+        g_Reflection.Call( "on_playertakedamage", @pHookModule );
+
+        @pDamageInfo.pVictim = pHookModule.victim;
+        @pDamageInfo.pAttacker = pHookModule.attacker;
+        @pDamageInfo.pInflictor = pHookModule.inflictor;
+        @pDamageInfo.pInflictor = pHookModule.inflictor;
+        pDamageInfo.flDamage = pHookModule.damage;
+        pDamageInfo.bitsDamageType = pHookModule.damage_bits;
+
+        return HOOK_CONTINUE;
+    }
+}
+
+// idk how cool could this be. let's see while writting :aaagaben:
+class CHookModule
+{
+    // The function's name that called this hook. don't think it's needed but here it is.
+    string function;
+
+    // Whatever to keep calling other hooks or stop.
+    bool stop;
+
+    CHookModule( const string& in _function )
+    {
+        function = _function;
+    }
+
+    CBasePlayer@ player;
+
+    CBaseEntity@ victim;
+    CBaseEntity@ attacker;
+    CBaseEntity@ inflictor;
+    float damage;
+    int damage_bits;
 }
 
 ReflectionWorkspace::Reflection@ g_Reflection;
@@ -110,22 +174,33 @@ void MapInit()
 {
     g_Reflection.Register();
 
+    if( g_Hooks.RegisterHook( Hooks::Player::PlayerTakeDamage, @ReflectionWorkspace::PlayerTakeDamage ) )
+        g_Reflection.m_Logger.info( "Registered function PlayerTakeDamage" );
+    if( g_Hooks.RegisterHook( Hooks::Player::PlayerSpawn, @ReflectionWorkspace::PlayerSpawn ) )
+        g_Reflection.m_Logger.info( "Registered function PlayerSpawn" );
+
     g_CustomEntityFuncs.RegisterCustomEntity( "ReflectionWorkspace::MapThink", "_map_think_" );
     g_EntityFuncs.Create( "_map_think_", g_vecZero, g_vecZero, false );
 
-    g_Reflection.Call( "On_MapPrecache" );
+    CHookModule@ pHookModule;
 
-    g_Reflection.Call( "On_MapInit" );
+    @pHookModule = CHookModule( "MapInit" );
+    g_Reflection.Call( "On_MapPrecache", @pHookModule );
+
+    @pHookModule = CHookModule( "MapInit" );
+    g_Reflection.Call( "On_MapInit", @pHookModule );
 }
 
 void MapActivate()
 {
-    g_Reflection.Call( "On_MapActivate" );
+    CHookModule@ pHookModule = CHookModule( "MapActivate" );
+    g_Reflection.Call( "On_MapActivate", @pHookModule );
 }
 
 void MapStart()
 {
-    g_Reflection.Call( "On_MapStart" );
+    CHookModule@ pHookModule = CHookModule( "MapStart" );
+    g_Reflection.Call( "On_MapStart", @pHookModule );
 }
 
 // This will *probably* be removed on release.

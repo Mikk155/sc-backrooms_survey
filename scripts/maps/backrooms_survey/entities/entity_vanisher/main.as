@@ -29,12 +29,10 @@ namespace vanisher
     CLogger@ m_Logger = CLogger( "NPC Vanisher" );
 #endif
 
-    void On_MapInit()
+    void On_MapInit( CHookModule@ pHookInfo )
     {
         g_CustomEntityFuncs.RegisterCustomEntity( "vanisher::CNPCVanisher", "npc_vanisher" );
         g_CustomEntityFuncs.RegisterCustomEntity( "vanisher::CVanisherTargets", "info_vanisher_destination" );
-
-        g_Hooks.RegisterHook( Hooks::Player::PlayerTakeDamage, @vanisher::on_playertakedamage );
     }
 
     enum vanisher_anims
@@ -49,36 +47,40 @@ namespace vanisher
         die
     };
 
-    HookReturnCode on_playertakedamage( DamageInfo@ pDamageInfo )
+    void on_playertakedamage( CHookModule@ pHookInfo )
     {
-        auto victim = ( pDamageInfo.pVictim !is null ? cast<CBasePlayer@>( pDamageInfo.pVictim ) : null );
-        auto attacker = ( pDamageInfo.pAttacker !is null ? pDamageInfo.pAttacker : pDamageInfo.pInflictor );
-        auto inflictor = ( pDamageInfo.pInflictor !is null ? pDamageInfo.pInflictor : pDamageInfo.pAttacker );
-        auto damage = pDamageInfo.flDamage;
-        auto bits = pDamageInfo.bitsDamageType;
-
-        if( victim is null )
-            return HOOK_CONTINUE;
-
-        if( attacker !is null )
+        if( pHookInfo.attacker !is null && pHookInfo.victim !is null && pHookInfo.attacker.pev.targetname == "npc_vanisher" )
         {
-            if( attacker.pev.targetname == "npc_vanisher" )
+            array<CVanisherTargets@> teleports = {};
+
+            CBaseEntity@ teleport = null;
+
+            while( ( @teleport = g_EntityFuncs.FindEntityByClassname( teleport, "info_vanisher_destination" ) ) !is null )
             {
-                auto vanisher = g_EntityFuncs.FindEntityByClassname( null, "npc_vanisher" );
+                auto vanisher_teleport = cast<CVanisherTargets@>( CastToScriptClass( teleport ) );
 
-                try
+                if( vanisher_teleport !is null && ( vanisher_teleport.pev.spawnflags & 1 ) == 0 )
                 {
-                    cast<vanisher::CNPCVanisher@>( CastToScriptClass( attacker ) ).attack( victim );
+                    teleports.insertLast( vanisher_teleport );
                 }
-                catch
-                {
-                    g_EntityFuncs.Remove( vanisher );
-                }
-
-                pDamageInfo.flDamage = 0;
-                return HOOK_CONTINUE;
             }
+
+            auto size = teleports.length();
+
+            if( size == 0 )
+            {
+#if SERVER
+                m_Logger.error( "No valid \"info_vanisher_destination\" entity.\n" );
+#endif
+                return;
+            }
+
+            teleports[ Math.RandomLong( 0, size - 1 ) ].teleport( cast<CBasePlayer@>( pHookInfo.victim ) );
+
+            // -TODO Update pHookInfo.attacker's enemy to a new player.
+
+            pHookInfo.damage = 0;
+            pHookInfo.stop = true;
         }
-        return HOOK_CONTINUE;
     }
 }

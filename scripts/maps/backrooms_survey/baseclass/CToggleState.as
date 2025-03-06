@@ -12,55 +12,54 @@
 *       - Mikk155 - Author -
 */
 
+enum CToggleState_t
+{
+    START_OFF = 1
+};
+
 mixin class CToggleState
 {
-    /*
-    *   Return whatever a entity is enabled
-    *   If USE_TYPE != USE_SET then we'll set the state.
-    */
-    bool entity_state( USE_TYPE use_type = USE_SET )
+    bool shouldtoggle( int use_type = -1 )
     {
         switch( use_type )
         {
             case USE_ON:
             {
-#if SERVER
-                g_Logger.trace( "Entity {}::{}::{} is been {}.", { self.entindex(), self.pev.classname, self.pev.targetname, "enabled" } );
-#endif
-                pev.spawnflags &= ~1;
-                return true;
+                pev.spawnflags &= ~CToggleState_t::START_OFF;
+                break;
             }
             case USE_OFF:
             {
-#if SERVER
-                g_Logger.trace( "Entity {}::{}::{} is been {}.", { self.entindex(), self.pev.classname, self.pev.targetname, "disabled" } );
-#endif
-                pev.spawnflags |= 1;
-                return false;
+                pev.spawnflags |= CToggleState_t::START_OFF;
+                break;
             }
+            case USE_SET:
             case USE_TOGGLE:
             {
-                if( ( pev.spawnflags & 1 ) != 0 )
+                if( ( pev.spawnflags & CToggleState_t::START_OFF ) != 0 )
                 {
-#if SERVER
-                    g_Logger.trace( "Entity {}::{}::{} is been {}.", { self.entindex(), self.pev.classname, self.pev.targetname, "disabled" } );
-#endif
-                    pev.spawnflags |= 1;
-                    return false;
+                    pev.spawnflags &= ~CToggleState_t::START_OFF;
                 }
                 else
                 {
-#if SERVER
-                    g_Logger.trace( "Entity {}::{}::{} is been {}.", { self.entindex(), self.pev.classname, self.pev.targetname, "enabled" } );
-#endif
-                    pev.spawnflags &= ~1;
-                    return true;
+                    pev.spawnflags |= CToggleState_t::START_OFF;
                 }
+                break;
             }
+            /*
             default:
+            WARNING: Angelscript: .../ctogglestate.as (61, 9) : Unreachable code XD
+            */
+            case -1:
             {
-                return ( ( pev.spawnflags & 1 ) == 0 );
+                return ( ( pev.spawnflags & CToggleState_t::START_OFF ) == 0 );
             }
         }
+
+#if SERVER
+        g_Logger.trace( "Entity {}::{}::{} is been {}.", { self.entindex(), self.pev.classname, self.pev.targetname, ( ( pev.spawnflags & CToggleState_t::START_OFF ) == 0 ? "enabled" : "disabled" ) } );
+#endif
+
+        return ( ( pev.spawnflags & CToggleState_t::START_OFF ) == 0 );
     }
 }

@@ -14,57 +14,8 @@
 *           - https://github.com/KernCore91/-SC-Cry-of-Fear-Weapons-Project/blob/master/scripts/maps/cof/special/weapon_cofcamera.as
 */
 
-#include "CEnvironmentInformation"
-
 namespace camera
 {
-    // Array of env_info entities
-    array<int> information_entities = {};
-
-    class CPicture
-    {
-        Vector position;
-        Vector angles;
-        int index;
-
-        CPicture( Vector _position, Vector _angles, int _index )
-        {
-            position = _position;
-            angles = _angles;
-            index = _index;
-        }
-    }
-
-#if SERVER
-    CLogger@ m_Logger = CLogger( "Camera" );
-#endif
-
-    enum camera_anim
-    {
-        CoFCAMERA_IDLE = 0,
-        CoFCAMERA_DRAW_FIRST,
-        CoFCAMERA_HOLSTER,
-        CoFCAMERA_SHOOT,
-        CoFCAMERA_FIDGET1,
-        CoFCAMERA_JUMP_TO,
-        CoFCAMERA_JUMP_FROM,
-        CoFCAMERA_DRAW,
-        CoFCAMERA_FIDGET2,
-        CoFCAMERA_FIDGET3,
-        CoFCAMERA_SPRINT_TO,
-        CoFCAMERA_SPRINT_IDLE,
-        CoFCAMERA_SPRINT_FROM,
-        CoFCAMERA_MELEE 
-    };
-
-    enum sprint_state
-    {
-        sprint_no = 0,
-        sprint_start,
-        sprint_loop,
-        sprint_end
-    };
-
     class CWeaponCamera : ScriptBasePlayerWeaponEntity
     {
         float m_flNextPictureTime;
@@ -203,7 +154,7 @@ namespace camera
 
                             if( env_info.pev.target != "" )
                             {
-                                auto render = g_Rendering.create( env_info.m_watch_time );
+                                auto render = Rendering::Create( env_info.m_watch_time );
 
                                 if( env_info.target_has_rendermode )
                                     render.rendermode = env_info.target_rendermode;

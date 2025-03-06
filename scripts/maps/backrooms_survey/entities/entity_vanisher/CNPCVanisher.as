@@ -40,7 +40,7 @@ namespace vanisher
 
         void Use( CBaseEntity@ activator, CBaseEntity@ caller, USE_TYPE use_type, float value )
         {
-            if( !entity_state( use_type ) )
+            if( !shouldtoggle( use_type ) )
             {
 #if SERVER
                 if( m_hvanisher !is null )
@@ -134,7 +134,7 @@ namespace vanisher
         {
             pev.nextthink = g_Engine.time + 0.1f;
 
-            if( !entity_state() )
+            if( !shouldtoggle() )
             {
                 return;
             }
@@ -211,7 +211,6 @@ namespace vanisher
                 */
 
                 dictionary kv_pair;
-                kv_pair[ "target" ] = string(self.pev.targetname);
                 kv_pair[ "targetname" ] = "npc_vanisher_sequence";
                 kv_pair[ "m_iszEntity" ] = "npc_vanisher";
                 kv_pair[ "m_iszPlay" ] = "ventclimb";
@@ -292,7 +291,7 @@ namespace vanisher
         {
             pev.nextthink = g_Engine.time + 0.1f;
 
-            if( !entity_state() )
+            if( !shouldtoggle() )
             {
                 SetThink( ThinkFunction( this.state_retire ) );
                 return;
@@ -386,35 +385,6 @@ namespace vanisher
 #endif
 
             SetThink( ThinkFunction( this.state_find_candidate ) );
-        }
-
-        void attack( CBasePlayer@ player )
-        {
-            array<CVanisherTargets@> teleports = {};
-
-            CBaseEntity@ teleport = null;
-
-            while( ( @teleport = g_EntityFuncs.FindEntityByClassname( teleport, "info_vanisher_destination" ) ) !is null )
-            {
-                auto vanisher_teleport = cast<CVanisherTargets@>( CastToScriptClass( teleport ) );
-
-                if( vanisher_teleport !is null && ( vanisher_teleport.pev.spawnflags & 1 ) == 0 )
-                {
-                    teleports.insertLast( vanisher_teleport );
-                }
-            }
-
-            auto size = teleports.length();
-
-            if( size == 0 )
-            {
-#if SERVER
-                m_Logger.error( "No valid \"info_vanisher_destination\" entity.\n" );
-#endif
-                return;
-            }
-
-            teleports[ Math.RandomLong( 0, size - 1 ) ].teleport( player );
         }
     }
 }

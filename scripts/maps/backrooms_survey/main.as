@@ -12,135 +12,101 @@
 *       - Mikk155 - Author -
 */
 
-#include "baseclass/CFireTarget"
-#include "baseclass/CToggleState"
+#include "Reflection"
 
-#if SERVER
-#include "utils/CLogger"
-#endif
-
-#include "utils/CRendering"
-
-#include "utils"
-
-#include "entities/CEnvironmentInformation"
-
-#include "npcs/vanisher/main"
-
-#include "weapons/CWeaponCamera"
-
-void MapInit()
+namespace main
 {
-    g_CustomEntityFuncs.RegisterCustomEntity( "GlobalThink", "global_think" );
-    g_EntityFuncs.Create( "global_think", g_vecZero, g_vecZero, false );
-
-    g_CustomEntityFuncs.RegisterCustomEntity( "vanisher::CNPCVanisher", "npc_vanisher" );
-    g_CustomEntityFuncs.RegisterCustomEntity( "vanisher::CVanisherTargets", "info_vanisher_destination" );
-
-    /* =======================================================
-    *   Start of Camera weapon
-    =========================================================*/
-    g_CustomEntityFuncs.RegisterCustomEntity( "camera::CEnvironmentInformation", "env_info" );
-
-    g_Game.PrecacheGeneric( "sound/cof/guns/camera/photo.ogg" );
-    g_SoundSystem.PrecacheSound(  "cof/guns/camera/photo.ogg" );
-
-    g_Game.PrecacheGeneric( "sound/cof/guns/camera/charge.ogg" );
-    g_SoundSystem.PrecacheSound(  "cof/guns/camera/charge.ogg" );
-
-    g_Game.PrecacheGeneric( "sound/cof/guns/camera/lever.ogg" );
-    g_SoundSystem.PrecacheSound(  "cof/guns/camera/lever.ogg" );
-
-    g_Game.PrecacheModel( "models/cof/camera/vwm.mdl" );
-    g_Game.PrecacheModel( "models/cof/camera/wld.mdl" );
-
-    g_Game.PrecacheModel( "sprites/cof/wpn_sel01.spr" );
-    g_Game.PrecacheGeneric( "sprites/cof/wpn_sel01.spr" );
-    g_Game.PrecacheGeneric( "sprites/brp/weapon_camera.txt" );
-
-    g_CustomEntityFuncs.RegisterCustomEntity( "camera::CWeaponCamera", "weapon_camera" );
-    g_ItemRegistry.RegisterWeapon( "weapon_camera", "brp", "357", "", "ammo_357" );
-
-    /* =======================================================
-    *   End of Camera weapon
-    =========================================================*/
-
-    g_Hooks.RegisterHook( Hooks::Player::PlayerSpawn, @on_playerspawn );
-    g_Hooks.RegisterHook( Hooks::Player::PlayerTakeDamage, @on_playertakedamage );
-
-    g_Game .PrecacheModel( "sprites/glow01.spr" );
-
-    // Initialize player-basis arrays
-    for( int i = 0; i < g_Engine.maxClients; i++ ) {
-        trigger_cameras.insertLast( EHandle(null) );
-        menus.insertLast( null );
-    }
-
-    hud_msg.x = -1;
-    hud_msg.r1 = 255;
-    hud_msg.g1 = hud_msg.b1 = hud_msg.a1 = hud_msg.r2 = hud_msg.g2 = hud_msg.b2 = hud_msg.a2 = hud_msg.effect = 0;
-    hud_msg.fadeinTime = hud_msg.fxTime = 0.0f;
-    hud_msg.fadeoutTime = 0.25;
-    hud_msg.holdTime = 2;
-    hud_msg.channel = 4;
-    hud_msg.y = 0.90;
-}
-
-void MapStart()
-{
-}
-
-void MapActivate()
-{
-}
-
-void MapThink()
-{
-    g_Rendering.think();
-}
-
-HookReturnCode on_playerspawn( CBasePlayer@ player )
-{
-    if( player is null )
-        return HOOK_CONTINUE;
-
-    if( player.HasNamedPlayerItem( "weapon_camera" ) is null )
+    void On_MapInit( CHookModule@ pHookInfo )
     {
-        player.GiveNamedItem( "weapon_camera", 0, 5 );
-    }
+        // Initialize player-basis arrays
+        for( int i = 0; i < g_Engine.maxClients; i++ ) {
+            trigger_cameras.insertLast( EHandle(null) );
+            menus.insertLast( null );
+        }
 
-    return HOOK_CONTINUE;
+        hud_msg.x = -1;
+        hud_msg.r1 = 255;
+        hud_msg.g1 = hud_msg.b1 = hud_msg.a1 = hud_msg.r2 = hud_msg.g2 = hud_msg.b2 = hud_msg.a2 = hud_msg.effect = 0;
+        hud_msg.fadeinTime = hud_msg.fxTime = 0.0f;
+        hud_msg.fadeoutTime = 0.25;
+        hud_msg.holdTime = 2;
+        hud_msg.channel = 4;
+        hud_msg.y = 0.90;
+    }
 }
 
-HookReturnCode on_playertakedamage( DamageInfo@ pDamageInfo )
+// Global hud params
+HUDTextParams hud_msg;
+
+// Array of CTextMenu for each player.
+array<CTextMenu@> menus = {};
+
+// Array of trigger_camera for each player
+array<EHandle> trigger_cameras = {};
+
+/*
+    Get a per-player camera.
+
+    If it doesn't exists we'll create one.
+*/
+CBaseEntity@ get_camera( int index )
 {
-    auto victim = ( pDamageInfo.pVictim !is null ? cast<CBasePlayer@>( pDamageInfo.pVictim ) : null );
-    auto attacker = ( pDamageInfo.pAttacker !is null ? pDamageInfo.pAttacker : pDamageInfo.pInflictor );
-    auto inflictor = ( pDamageInfo.pInflictor !is null ? pDamageInfo.pInflictor : pDamageInfo.pAttacker );
-    auto damage = pDamageInfo.flDamage;
-    auto bits = pDamageInfo.bitsDamageType;
+    auto handle = trigger_cameras[ index - 1 ];
 
-    if( victim is null )
-        return HOOK_CONTINUE;
-
-    if( attacker !is null )
+    if( handle.IsValid() )
     {
-        if( attacker.pev.targetname == "npc_vanisher" )
+        auto camera = handle.GetEntity();
+
+        if( camera !is null )
         {
-            auto vanisher = g_EntityFuncs.FindEntityByClassname( null, "npc_vanisher" );
-
-            try
-            {
-                cast<vanisher::CNPCVanisher@>( CastToScriptClass( attacker ) ).attack( victim );
-            }
-            catch
-            {
-                g_EntityFuncs.Remove( vanisher );
-            }
-
-            pDamageInfo.flDamage = 0;
-            return HOOK_CONTINUE;
+            return @camera;
         }
     }
-    return HOOK_CONTINUE;
+
+    dictionary keyvalue_data;
+
+    // Targets to trigger when a player starts or stops using a camera
+//    keyvalue_data[ "m_iszTargetWhenPlayerStartsUsing" ] = "";
+//    keyvalue_data[ "m_iszTargetWhenPlayerStopsUsing" ] = "";
+// -TODO Maybe Raptor could use these?
+
+    keyvalue_data[ "max_player_count" ] = "1";
+    keyvalue_data[ "hud_health" ] = "1";
+    keyvalue_data[ "hud_flashlight" ] = "1";
+    keyvalue_data[ "hud_weapons" ] = "1";
+/*
+    keyvalue_data[ "mouse_action_0_0" ] = "255";
+    keyvalue_data[ "mouse_action_0_1" ] = "255";
+    keyvalue_data[ "mouse_action_1_0" ] = "255";
+    keyvalue_data[ "mouse_action_1_1" ] = "255";
+    keyvalue_data[ "mouse_action_2_0" ] = "255";
+    keyvalue_data[ "mouse_action_2_1" ] = "255";
+*/
+    keyvalue_data[ "wait" ] = "10";
+
+    auto camera = g_EntityFuncs.CreateEntity( "trigger_camera", keyvalue_data, true );
+
+    if( camera !is null )
+    {
+        camera.pev.spawnflags |= 256; // Player Invulnerable
+
+        trigger_cameras[ index - 1 ] = EHandle( camera );
+        return @camera;
+    }
+
+    return null;
+}
+
+void custom_precache( const string& in filename )
+{
+    g_Game.PrecacheGeneric( filename );
+
+    if( filename.EndsWith( ".spr" ) || filename.EndsWith( ".mdl" ) )
+    {
+        g_Game.PrecacheModel( filename );
+    }
+    else
+    {
+        g_SoundSystem.PrecacheSound( filename.SubString( 6 ) );
+    }
 }
