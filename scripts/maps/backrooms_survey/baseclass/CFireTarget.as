@@ -38,8 +38,23 @@ mixin class CFireTarget
         return false;
     }
 
-    void FireTarget( const string&in target, CBaseEntity@ activator, CBaseEntity@ caller = null )
+    // CEntityFuncs::FireTargets's "delay" doesn't even fucking works lol
+    void FireTarget_Delayed( const string&in target, EHandle activator, EHandle caller )
     {
+        FireTarget( target, ( activator.IsValid() ? activator.GetEntity() : null ), ( caller.IsValid() ? caller.GetEntity() : null ), true );
+    }
+
+    void FireTarget( const string&in target, CBaseEntity@ activator, CBaseEntity@ caller = null, float cdelay = 0, bool delayed = false )
+    {
+        if( cdelay == 0 )
+            cdelay = m_delay;
+
+        if( cdelay > 0 && !delayed )
+        {
+            g_Scheduler.SetTimeout( @this, "FireTarget_Delayed", cdelay, target, EHandle( activator ), EHandle( caller ) );
+            return;
+        }
+
         if( m_killtarget != String::EMPTY_STRING )
         {
             CBaseEntity@ entity = null;
@@ -84,13 +99,13 @@ mixin class CFireTarget
                         activator.IsPlayer() ? activator.pev.netname : activator.pev.targetname ), puse_type } );
 #endif
 
-                g_EntityFuncs.FireTargets( target, activator, caller is null ? self : caller, puse_type, 0, m_delay );
+                g_EntityFuncs.FireTargets( target, activator, caller is null ? self : caller, puse_type, 0 );
             }
         }
     }
 
-    void FireTarget( CBaseEntity@ activator, CBaseEntity@ caller = null )
+    void FireTarget( CBaseEntity@ activator, CBaseEntity@ caller = null, float cdelay = 0 )
     {
-        FireTarget( string(pev.target), activator, caller );
+        FireTarget( string(pev.target), activator, caller, cdelay );
     }
 }
