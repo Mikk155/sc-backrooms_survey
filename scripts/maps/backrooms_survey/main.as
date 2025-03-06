@@ -23,20 +23,8 @@ namespace main
             trigger_cameras.insertLast( EHandle(null) );
             menus.insertLast( null );
         }
-
-        hud_msg.x = -1;
-        hud_msg.r1 = 255;
-        hud_msg.g1 = hud_msg.b1 = hud_msg.a1 = hud_msg.r2 = hud_msg.g2 = hud_msg.b2 = hud_msg.a2 = hud_msg.effect = 0;
-        hud_msg.fadeinTime = hud_msg.fxTime = 0.0f;
-        hud_msg.fadeoutTime = 0.25;
-        hud_msg.holdTime = 2;
-        hud_msg.channel = 4;
-        hud_msg.y = 0.90;
     }
 }
-
-// Global hud params
-HUDTextParams hud_msg;
 
 // Array of CTextMenu for each player.
 array<CTextMenu@> menus = {};

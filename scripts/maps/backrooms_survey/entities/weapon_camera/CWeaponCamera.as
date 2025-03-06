@@ -170,8 +170,9 @@ namespace camera
                                 render.add_player( player );
                             }
 
-                            hud_msg.holdTime = env_info.m_watch_time;
-                            g_PlayerFuncs.HudMessage( player, hud_msg, env_info.buffer );
+                            hud_message::param.channel = 3;
+                            hud_message::param.holdTime = env_info.m_watch_time;
+                            hud_message::print( player, env_info.buffer);
 
                             env_info.FireTarget( env_info.m_trigger_on_watch, player );
 
@@ -209,8 +210,9 @@ namespace camera
                         camera.Use( player, player, USE_OFF, 0 );
                     }
 
-                    hud_msg.holdTime = 0.0f;
-                    g_PlayerFuncs.HudMessage( player, hud_msg, "\n" );
+                    hud_message::param.channel = 3;
+                    hud_message::param.holdTime = 0.0f;
+                    hud_message::print( player, "\n" );
 
                     // .-TODO Check for flashlight active and remove/reset screenfade at peak level.
 
@@ -260,8 +262,9 @@ namespace camera
                 }
                 else
                 {
-                    hud_msg.holdTime = 5.0f;
-                    g_PlayerFuncs.HudMessage( player, hud_msg, "There are not any useful picture yet.\n" );
+                    hud_message::param.channel = 4;
+                    hud_message::param.holdTime = 5.0f;
+                    hud_message::print( player, "There are not any useful picture yet.\n" );
                     m_flNextPictureTime = g_Engine.time + 0.5f;
                 }
             }
@@ -341,8 +344,9 @@ namespace camera
 
                 m_nightvision_battery--;
 
-                hud_msg.holdTime = 0.5f;
-                g_PlayerFuncs.HudMessage( player, hud_msg, m_nightvision_battery );
+                hud_message::param.channel = 3;
+                hud_message::param.holdTime = 0.2f;
+                hud_message::print( player, m_nightvision_battery );
 
                 if( m_nightvision_battery <= 0 )
                 {

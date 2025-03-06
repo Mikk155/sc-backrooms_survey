@@ -2,5 +2,7 @@
 #include "../entities/entity_vanisher/main"
 #include "../entities/weapon_camera/main"
 
+#include "../gamemodes/entity_info/main"
+
 // Required to run Reflection and common stuff
 #include "../main"

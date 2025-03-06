@@ -20,6 +20,7 @@
 #include "../../baseclass/CToggleState"
 
 #include "../../utils/CRendering"
+#include "../../utils/hud_message"
 
 #include "CEnvironmentInformation"
 #include "CWeaponCamera"
