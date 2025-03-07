@@ -16,6 +16,25 @@ namespace vanisher
 {
     class CVanisherTargets : ScriptBaseEntity, CToggleState, CFireTarget
     {
+        private int m_iplayer;
+
+        CBasePlayer@ m_player
+        {
+            get const
+            {
+                auto player = g_EntityFuncs.Instance( m_iplayer );
+
+                if( player !is null )
+                {
+                    return cast<CBasePlayer@>( player );
+                }
+
+                return null;
+            }
+        }
+
+        private float m_height;
+
         void Spawn()
         {
             self.pev.solid = SOLID_NOT;
@@ -42,6 +61,45 @@ namespace vanisher
         {
             if( player !is null )
             {
+                m_iplayer = player.entindex();
+
+                m_height = player.pev.origin.z;
+
+                player.pev.flags |= ( FL_GODMODE | FL_NOTARGET | FL_FROZEN );
+
+                g_PlayerFuncs.ScreenFade( player, g_vecZero, 5.5, 0.5, 255, FFADE_OUT );
+
+                auto effects = g_EntityFuncs.Create( "_vanisher_effects_", player.pev.origin + g_Engine.v_up * 1, g_vecZero, false, self.edict() );
+
+                string targetname;
+                snprintf( targetname, "npc_vanisher_teleport_%1", m_iplayer );
+                effects.pev.targetname = targetname;
+
+                FireTarget( targetname, null, null, 4.0f );
+
+                pev.nextthink = g_Engine.time;
+                SetThink( ThinkFunction( this.sink ) );
+            }
+        }
+
+        void sink()
+        {
+            auto player = m_player;
+
+            if( player is null )
+            {
+                SetThink( null );
+                return;
+            }
+
+            pev.nextthink = g_Engine.time + 0.1f;
+
+            g_EntityFuncs.SetOrigin( player, player.pev.origin - g_Engine.v_up * 0.5 );
+
+            if( player.pev.origin.z + player.pev.view_ofs.z <= m_height )
+            {
+                player.pev.flags &= ~( FL_GODMODE | FL_NOTARGET | FL_FROZEN );
+
                 player.SetOrigin( pev.origin );
                 player.pev.fixangle = FAM_FORCEVIEWANGLES;
                 player.pev.angles = player.pev.v_angle = pev.angles;
@@ -51,6 +109,10 @@ namespace vanisher
                 #endif
 
                 FireTarget( player );
+
+                g_PlayerFuncs.ScreenFade( player, g_vecZero, 0.5, 0.0, 255, FFADE_IN );
+
+                SetThink( null );
             }
         }
     }

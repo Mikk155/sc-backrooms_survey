@@ -95,9 +95,12 @@ mixin class CFireTarget
                 }
 
                 #if SERVER
-                    g_Logger.trace( "Entity {}::{}::{} firing targets \"{}\" with activator {} and use_type {}", {
-                        self.entindex(), self.pev.classname, self.pev.targetname, target, (
-                            activator.IsPlayer() ? activator.pev.netname : activator.pev.targetname ), puse_type } );
+                    g_Logger.trace( "Entity {}::{}::{} firing targets \"{}\"", { self.entindex(), self.pev.classname, self.pev.targetname, target } );
+                    if( activator !is null )
+                        g_Logger.trace( "Activator: {}", { activator.IsPlayer() ? activator.pev.netname : activator.pev.targetname } );
+                    if( caller !is null )
+                        g_Logger.trace( "Caller: {}", { caller.IsPlayer() ? caller.pev.netname : caller.pev.targetname } );
+                    g_Logger.trace( "USE_TYPE: {}", { puse_type } );
                 #endif
 
                 g_EntityFuncs.FireTargets( target, activator, caller is null ? self : caller, puse_type, 0 );

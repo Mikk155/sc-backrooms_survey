@@ -21,9 +21,9 @@
 
 #include "../../utils/trace_hull"
 
-#include "CVanisherTargets"
-
 #include "CVanisherEffects"
+
+#include "CVanisherTargets"
 
 #include "CNPCVanisher"
 
@@ -53,6 +53,41 @@ namespace vanisher
         emerge,
         die
     };
+
+    CBaseMonster@ vanisher_npc()
+    {
+        auto vanisher = g_EntityFuncs.FindEntityByTargetname( null, "npc_vanisher" );
+
+        if( vanisher !is null )
+        {
+            return cast<CBaseMonster@>( vanisher );
+        }
+
+        return null;
+    }
+
+    CBasePlayer@ nearby_player()
+    {
+        CBasePlayer@ near_entity = null;
+
+        auto vanisher = vanisher_npc();
+
+        if( vanisher !is null )
+        {
+            for( int i = 0; i <= g_Engine.maxClients; i++ )
+            {
+                auto candidate = g_PlayerFuncs.FindPlayerByIndex( i );
+
+                if( candidate !is null && candidate.IsAlive() && ( candidate.pev.flags & FL_NOTARGET ) == 0 && vanisher.FGetNodeRoute( candidate.pev.origin ) && ( near_entity is null
+                || ( candidate.pev.origin - vanisher.pev.origin ).Length() < ( near_entity.pev.origin - vanisher.pev.origin ).Length() ) )
+                {
+                    @near_entity = candidate;
+                }
+            }
+        }
+
+        return near_entity;
+    }
 
     void on_playertakedamage( CHookModule@ pHookInfo )
     {
@@ -85,7 +120,16 @@ namespace vanisher
 
             teleports[ Math.RandomLong( 0, size - 1 ) ].teleport( cast<CBasePlayer@>( pHookInfo.victim ) );
 
-            // -TODO Update pHookInfo.attacker's enemy to a new player.
+            auto vanisher = cast<CBaseMonster@>( pHookInfo.attacker );
+
+            vanisher.ClearEnemyList();
+
+            auto enemy = nearby_player();
+
+            if( enemy !is null )
+            {
+                vanisher.PushEnemy( enemy, enemy.pev.origin );
+            }
 
             pHookInfo.damage = 0;
             pHookInfo.stop = true;

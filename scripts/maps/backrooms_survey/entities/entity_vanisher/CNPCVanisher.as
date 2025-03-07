@@ -113,7 +113,6 @@ namespace vanisher
             // This precaches the gsr and model then removes the entity.
             auto vanisher = create_vanisher();
             g_EntityFuncs.Remove( vanisher );
-            g_Game.PrecacheOther( "_vanisher_puddle_" );
         }
 
         void Spawn()
@@ -226,26 +225,6 @@ namespace vanisher
             }
         }
 
-        CBasePlayer@ nearby_player()
-        {
-            CBasePlayer@ near_entity = null;
-
-            auto vanisher = m_hvanisher;
-
-            for( int i = 0; i <= g_Engine.maxClients; i++ )
-            {
-                auto candidate = g_PlayerFuncs.FindPlayerByIndex( i );
-
-                if( candidate !is null && candidate.IsAlive() && vanisher.FGetNodeRoute( candidate.pev.origin ) && ( near_entity is null
-                || ( candidate.pev.origin - vanisher.pev.origin ).Length() < ( near_entity.pev.origin - vanisher.pev.origin ).Length() ) )
-                {
-                    @near_entity = candidate;
-                }
-            }
-
-            return near_entity;
-        }
-
         void state_stalk()
         {
             pev.nextthink = g_Engine.time + 0.1f;
@@ -261,6 +240,7 @@ namespace vanisher
             if( vanisher.pev.frags <= 0 )
             {
                 vanisher.pev.health -= 1.0f;
+
                 if( int(vanisher.pev.health) <= 0 ) // Who the fuck did this a float :madge:
                 {
                     #if SERVER
