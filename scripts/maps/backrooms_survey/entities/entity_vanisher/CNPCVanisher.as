@@ -220,6 +220,26 @@ namespace vanisher
             }
         }
 
+        CBasePlayer@ nearby_player()
+        {
+            CBasePlayer@ near_entity = null;
+
+            auto vanisher = m_hvanisher;
+
+            for( int i = 0; i <= g_Engine.maxClients; i++ )
+            {
+                auto candidate = g_PlayerFuncs.FindPlayerByIndex( i );
+
+                if( candidate !is null && candidate.IsAlive() && vanisher.FGetNodeRoute( candidate.pev.origin ) && ( near_entity is null
+                || ( candidate.pev.origin - vanisher.pev.origin ).Length() < ( near_entity.pev.origin - vanisher.pev.origin ).Length() ) )
+                {
+                    @near_entity = candidate;
+                }
+            }
+
+            return near_entity;
+        }
+
         void state_stalk()
         {
             pev.nextthink = g_Engine.time + 0.1f;
@@ -248,25 +268,25 @@ namespace vanisher
                 else
                 {
                     vanisher.pev.frags = m_frags;
-                    auto player = g_EntityFuncs.FindEntityInSphere( null, vanisher.pev.origin, 2000, "player", "classname" );
+                    vanisher.ClearEnemyList();
+                }
+            }
+            else if( !vanisher.m_hEnemy.IsValid() || vanisher.m_hEnemy.GetEntity() is null )
+            {
+                auto player = nearby_player();
 
+                if( player !is null )
+                {
                     #if SERVER
                         m_Logger.trace( "Lost sight of player enemy. Getting new player {}", { player.pev.netname } );
                     #endif
 
                     vanisher.PushEnemy( player, player.pev.origin );
                 }
-            }
-            else if( !vanisher.m_hEnemy.IsValid() || vanisher.m_hEnemy.GetEntity() is null )
-            {
-                // -TODO Dafuck observers!?
-                auto player = g_EntityFuncs.FindEntityInSphere( null, vanisher.pev.origin, 2000, "player", "classname" );
-
-                #if SERVER
-                    m_Logger.trace( "Lost sight of player enemy. Getting new player {}", { player.pev.netname } );
-                #endif
-
-                vanisher.PushEnemy( player, player.pev.origin );
+                else
+                {
+                    SetThink( ThinkFunction( this.state_retire ) );
+                }
             }
             else if( !vanisher.m_hEnemy.GetEntity().FVisible( vanisher, false ) )
             {
