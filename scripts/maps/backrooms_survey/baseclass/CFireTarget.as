@@ -63,9 +63,10 @@ mixin class CFireTarget
             {
                 if( !entity.IsPlayer() && entity.entindex() != 0 )
                 {
-#if SERVER
-                    g_Logger.trace( "Killing entity {}::{} at {}", { entity.pev.classname, m_killtarget, entity.pev.origin.ToString() } );
-#endif
+                    #if SERVER
+                        g_Logger.trace( "Killing entity {}::{} at {}", { entity.pev.classname, m_killtarget, entity.pev.origin.ToString() } );
+                    #endif
+
                     entity.UpdateOnRemove();
                     entity.pev.flags |= FL_KILLME;
                     entity.pev.targetname = 0;
@@ -93,11 +94,11 @@ mixin class CFireTarget
                     puse_type = USE_TYPE( Math.clamp( USE_OFF, USE_KILL, atoi( target_usetype[1] ) ) );
                 }
 
-#if SERVER
-                g_Logger.trace( "Entity {}::{}::{} firing targets \"{}\" with activator {} and use_type {}", {
-                    self.entindex(), self.pev.classname, self.pev.targetname, target, (
-                        activator.IsPlayer() ? activator.pev.netname : activator.pev.targetname ), puse_type } );
-#endif
+                #if SERVER
+                    g_Logger.trace( "Entity {}::{}::{} firing targets \"{}\" with activator {} and use_type {}", {
+                        self.entindex(), self.pev.classname, self.pev.targetname, target, (
+                            activator.IsPlayer() ? activator.pev.netname : activator.pev.targetname ), puse_type } );
+                #endif
 
                 g_EntityFuncs.FireTargets( target, activator, caller is null ? self : caller, puse_type, 0 );
             }

@@ -14,7 +14,7 @@
 */
 
 #if SERVER
-#include "utils/CLogger"
+    #include "utils/CLogger"
 #endif
 
 namespace ReflectionWorkspace
@@ -32,9 +32,9 @@ namespace ReflectionWorkspace
 
     final class Reflection
     {
-#if SERVER
-        CLogger@ m_Logger = CLogger( "Reflection" );
-#endif
+        #if SERVER
+            CLogger@ m_Logger = CLogger( "Reflection" );
+        #endif
 
         int Call( const string m_iszFunction, CHookModule@ pHookInfo )
         {
@@ -47,9 +47,11 @@ namespace ReflectionWorkspace
                 if( m_fFunction !is null && !m_fFunction.GetNamespace().IsEmpty() && m_fFunction.GetName() == m_iszFunction )
                 {
                     f++;
-#if SERVER
-                    m_Logger.trace( "Called \"{}::{}\"", { m_fFunction.GetNamespace(), m_fFunction.GetName() } );
-#endif
+
+                    #if SERVER
+                        m_Logger.trace( "Called \"{}::{}\"", { m_fFunction.GetNamespace(), m_fFunction.GetName() } );
+                    #endif
+
                     m_fFunction.Call( @pHookInfo );
 
                     if( pHookInfo.stop )
@@ -80,9 +82,10 @@ namespace ReflectionWorkspace
         {
             if( Functions.find( m_iszFunction ) < 0 )
             {
-#if SERVER
-                m_Logger.error( "GetFunction Couldn\'t find function \"{}:\"", { m_iszFunction } );
-#endif
+                #if SERVER
+                    m_Logger.error( "GetFunction Couldn\'t find function \"{}:\"", { m_iszFunction } );
+                #endif
+
                 return null;
             }
 
@@ -106,7 +109,10 @@ namespace ReflectionWorkspace
             self.pev.movetype = MOVETYPE_NONE;
             SetThink( ThinkFunction( this.think ) );
             pev.nextthink = g_Engine.time + 0.1f;
-            g_Reflection.m_Logger.info( "Registered function MapThink" );
+
+            #if SERVER
+                g_Reflection.m_Logger.info( "Registered function MapThink" );
+            #endif
         }
     }
 
@@ -185,14 +191,9 @@ void MapInit()
 {
     g_Reflection.Register();
 
-    if( g_Hooks.RegisterHook( Hooks::Player::PlayerPostThink, @ReflectionWorkspace::PlayerPostThink ) )
-        g_Reflection.m_Logger.info( "Registered function PlayerPostThink" );
-
-    if( g_Hooks.RegisterHook( Hooks::Player::PlayerTakeDamage, @ReflectionWorkspace::PlayerTakeDamage ) )
-        g_Reflection.m_Logger.info( "Registered function PlayerTakeDamage" );
-
-    if( g_Hooks.RegisterHook( Hooks::Player::PlayerSpawn, @ReflectionWorkspace::PlayerSpawn ) )
-        g_Reflection.m_Logger.info( "Registered function PlayerSpawn" );
+    g_Hooks.RegisterHook( Hooks::Player::PlayerPostThink, @ReflectionWorkspace::PlayerPostThink );
+    g_Hooks.RegisterHook( Hooks::Player::PlayerTakeDamage, @ReflectionWorkspace::PlayerTakeDamage );
+    g_Hooks.RegisterHook( Hooks::Player::PlayerSpawn, @ReflectionWorkspace::PlayerSpawn );
 
     g_CustomEntityFuncs.RegisterCustomEntity( "ReflectionWorkspace::MapThink", "_map_think_" );
     g_EntityFuncs.Create( "_map_think_", g_vecZero, g_vecZero, false );

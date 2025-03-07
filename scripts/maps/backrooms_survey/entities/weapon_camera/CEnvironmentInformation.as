@@ -68,7 +68,9 @@ namespace camera
                     }
                     else
                     {
-                        m_Logger.warn( "Couldn't open file {} for env_info", { szpath } );
+                        #if SERVER
+                            m_Logger.warn( "Couldn't open file {} for env_info", { szpath } );
+                        #endif
                     }
                 }
                 else
@@ -164,9 +166,10 @@ namespace camera
             g_EntityFuncs.SetOrigin( self, self.pev.origin );
 
             information_entities.insertLast( self.entindex() );
-#if SERVER
-            m_Logger.trace( "Inserted env_info entity {} as {} with data:\n{}\n", { self.entindex(), name, buffer } );
-#endif
+
+            #if SERVER
+                m_Logger.trace( "Inserted env_info entity {} as {} with data:\n{}\n", { self.entindex(), name, buffer } );
+            #endif
         }
 
         void Use( CBaseEntity@ activator, CBaseEntity@ caller, USE_TYPE use_type, float value )

@@ -14,9 +14,9 @@
 
 namespace Rendering
 {
-#if SERVER
-    CLogger@ m_Logger = CLogger( "Rendering" );
-#endif
+    #if SERVER
+        CLogger@ m_Logger = CLogger( "Rendering" );
+    #endif
 
     enum RenderFlags
     {
@@ -120,17 +120,18 @@ namespace Rendering
             }
             else
             {
-    #if SERVER
-                m_Logger.warn( "Failed on creating a env_render_individual for CRender instance." );
-    #endif
+                #if SERVER
+                    m_Logger.warn( "Failed on creating a env_render_individual for CRender instance." );
+                #endif
             }
         }
 
         ~CRender()
         {
-    #if SERVER
-            m_Logger.trace( "CRender's Destructor called. removing env_render_individual at index {}", { this.index } );
-    #endif
+            #if SERVER
+                m_Logger.trace( "CRender's Destructor called. removing env_render_individual at index {}", { this.index } );
+            #endif
+
             g_EntityFuncs.Remove( this.entity );
         }
 
@@ -186,22 +187,27 @@ namespace Rendering
 
         if( render is null )
         {
-#if SERVER
-            m_Logger.warn( "Failed on creating a CRender instance." );
-#endif
+            #if SERVER
+                m_Logger.warn( "Failed on creating a CRender instance." );
+            #endif
+
             return null;
         }
 
-#if SERVER
-        m_Logger.trace( "Created env_render_individual for CRender class at index {}", { render.index } );
-#endif
+        #if SERVER
+            m_Logger.trace( "Created env_render_individual for CRender class at index {}", { render.index } );
+        #endif
 
-        if( duration > 0 ) {
+        if( duration > 0 )
+        {
             temporal.insertLast( @render );
-        } else {
-#if SERVER
-            m_Logger.warn( "CRender without a expiration time has been initialized at index {}.", { render.index } );
-#endif
+        }
+        else
+        {
+            #if SERVER
+                m_Logger.warn( "CRender without a expiration time has been initialized at index {}.", { render.index } );
+            #endif
+
             permanent.insertLast( @render );
         }
 
@@ -218,9 +224,10 @@ namespace Rendering
 
             if( render is null )
             {
-#if SERVER
-                m_Logger.warn( "CRender at index {} was null.", { render.index } );
-#endif
+                #if SERVER
+                    m_Logger.warn( "CRender at index {} was null.", { render.index } );
+                #endif
+
                 temporal.removeAt(i);
             }
             else if( render.duration < g_Engine.time )

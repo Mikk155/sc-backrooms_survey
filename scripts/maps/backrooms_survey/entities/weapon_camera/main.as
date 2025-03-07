@@ -13,7 +13,7 @@
 */
 
 #if SERVER
-#include "../../utils/CLogger"
+    #include "../../utils/CLogger"
 #endif
 
 #include "../../baseclass/CFireTarget"
@@ -28,9 +28,9 @@
 
 namespace camera
 {
-#if SERVER
-    CLogger@ m_Logger = CLogger( "Camera" );
-#endif
+    #if SERVER
+        CLogger@ m_Logger = CLogger( "Camera" );
+    #endif
 
     void On_MapPrecache( CHookModule@ pHookInfo )
     {

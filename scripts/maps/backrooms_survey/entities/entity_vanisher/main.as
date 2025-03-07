@@ -16,7 +16,7 @@
 #include "../../baseclass/CToggleState"
 
 #if SERVER
-#include "../../utils/CLogger"
+    #include "../../utils/CLogger"
 #endif
 
 #include "../../utils/trace_hull"
@@ -27,9 +27,9 @@
 
 namespace vanisher
 {
-#if SERVER
-    CLogger@ m_Logger = CLogger( "NPC Vanisher" );
-#endif
+    #if SERVER
+        CLogger@ m_Logger = CLogger( "NPC Vanisher" );
+    #endif
 
     void On_MapInit( CHookModule@ pHookInfo )
     {
@@ -71,9 +71,10 @@ namespace vanisher
 
             if( size == 0 )
             {
-#if SERVER
-                m_Logger.error( "No valid \"info_vanisher_destination\" entity.\n" );
-#endif
+                #if SERVER
+                    m_Logger.error( "No valid \"info_vanisher_destination\" entity.\n" );
+                #endif
+
                 return;
             }
 

@@ -41,12 +41,12 @@ namespace vanisher
         {
             if( !shouldtoggle( use_type ) )
             {
-#if SERVER
-                if( m_hvanisher !is null )
-                {
-                    m_Logger.warn( "Turned off NPC controller but the vanisher npc reference still exists. Removing..." );
-                }
-#endif
+                #if SERVER
+                    if( m_hvanisher !is null )
+                    {
+                        m_Logger.warn( "Turned off NPC controller but the vanisher npc reference still exists. Removing..." );
+                    }
+                #endif
             }
             else
             {
@@ -144,57 +144,55 @@ namespace vanisher
 
             array<CBasePlayer@> players = {};
 
-#if SERVER
-            array<string> player_names = {};
-#endif
+            #if SERVER
+                array<string> player_names = {};
+            #endif
 
             for( int i = 0; i <= g_Engine.maxClients; i++ )
             {
                 auto candidate = g_PlayerFuncs.FindPlayerByIndex( i );
 
                 // -TODO Get people on a "unsafe" part of the map. maybe custom keyvalues?
-                if( candidate !is null
-                and candidate.IsConnected()
-                and candidate.IsAlive()
-                ) {
-#if SERVER
-                    m_Logger.trace( candidate.pev.netname );
-                    player_names.insertLast( candidate.pev.netname );
-#endif
+                if( candidate !is null && candidate.IsConnected() && candidate.IsAlive() )
+                {
+                    #if SERVER
+                        m_Logger.trace( candidate.pev.netname );
+                        player_names.insertLast( candidate.pev.netname );
+                    #endif
+
                     players.insertLast( candidate );
                 }
             }
 
-            if( players.length() <= 0 )
+            if( players.length() > 0 )
             {
-                return;
-            }
+                #if SERVER
+                    string str_players_size = "";
+                    for( uint ui = 0; ui < player_names.length(); ui++ ) {
+                        str_players_size += "\n{}";
+                    }
+                    string str_deb;
+                    snprintf( str_deb, "Time to summon! Enumerated player candidates: %1", str_players_size );
+                    m_Logger.trace( str_deb, player_names );
+                #endif
 
-#if SERVER
-            string str_players_size = "";
-            for( uint ui = 0; ui < player_names.length(); ui++ ) {
-                str_players_size += "\n{}";
-            }
-            string str_deb;
-            snprintf( str_deb, "Time to summon! Enumerated player candidates: %1", str_players_size );
-            m_Logger.trace( str_deb, player_names );
-#endif
+                auto player = players[ Math.RandomLong( 0, players.length() - 1 ) ];
 
-            auto player = players[ Math.RandomLong( 0, players.length() - 1 ) ];
-
-            if( player !is null )
-            {
-                m_iEnemy = player.entindex();
-                Vector vec_destination;
-
-                if( trace_hull( player.pev.origin, human_hull, 1024, vec_destination ) )
+                if( player !is null )
                 {
-                    g_EntityFuncs.SetOrigin( self, vec_destination );
-                    pev.nextthink = g_Engine.time + 4.0f;
-                    SetThink( ThinkFunction( this.state_emerge ) );
-#if SERVER
-                    m_Logger.info( "Got candidate {} to summon in {} seconds", { player.pev.netname, ( pev.nextthink - g_Engine.time ) } );
-#endif
+                    m_iEnemy = player.entindex();
+                    Vector vec_destination;
+
+                    if( trace_hull( player.pev.origin, human_hull, 1024, vec_destination ) )
+                    {
+                        g_EntityFuncs.SetOrigin( self, vec_destination );
+                        pev.nextthink = g_Engine.time + 4.0f;
+                        SetThink( ThinkFunction( this.state_emerge ) );
+
+                        #if SERVER
+                            m_Logger.info( "Got candidate {} to summon in {} seconds", { player.pev.netname, ( pev.nextthink - g_Engine.time ) } );
+                        #endif
+                    }
                 }
             }
         }
@@ -278,9 +276,10 @@ namespace vanisher
                 vanisher.pev.health -= 1.0f;
                 if( int(vanisher.pev.health) <= 0 ) // Who the fuck did this a float :madge:
                 {
-#if SERVER
-                    m_Logger.trace( "Run out of health. retiring in {}", { m_retire_time } );
-#endif
+                    #if SERVER
+                        m_Logger.trace( "Run out of health. retiring in {}", { m_retire_time } );
+                    #endif
+
                     pev.nextthink = g_Engine.time + m_retire_time;
                     SetThink( ThinkFunction( this.state_retire ) );
                     vanisher.pev.health = 1.0f;
@@ -289,9 +288,11 @@ namespace vanisher
                 {
                     vanisher.pev.frags = m_frags;
                     auto player = g_EntityFuncs.FindEntityInSphere( null, vanisher.pev.origin, 2000, "player", "classname" );
-#if SERVER
-                    m_Logger.trace( "Lost sight of player enemy. Getting new player {}", { player.pev.netname } );
-#endif
+
+                    #if SERVER
+                        m_Logger.trace( "Lost sight of player enemy. Getting new player {}", { player.pev.netname } );
+                    #endif
+
                     vanisher.PushEnemy( player, player.pev.origin );
                 }
             }
@@ -299,9 +300,11 @@ namespace vanisher
             {
                 // -TODO Dafuck observers!?
                 auto player = g_EntityFuncs.FindEntityInSphere( null, vanisher.pev.origin, 2000, "player", "classname" );
-#if SERVER
-                m_Logger.trace( "Lost sight of player enemy. Getting new player {}", { player.pev.netname } );
-#endif
+
+                #if SERVER
+                    m_Logger.trace( "Lost sight of player enemy. Getting new player {}", { player.pev.netname } );
+                #endif
+
                 vanisher.PushEnemy( player, player.pev.origin );
             }
             else if( !vanisher.m_hEnemy.GetEntity().FVisible( vanisher, false ) )
@@ -343,9 +346,9 @@ namespace vanisher
                             ( g_Engine.maxClients - 1 )
             );
 
-#if SERVER
-            m_Logger.info( "Vanisher npc gone. summoning again in {}", { ( pev.nextthink - g_Engine.time ) } );
-#endif
+            #if SERVER
+                m_Logger.info( "Vanisher npc gone. summoning again in {}", { ( pev.nextthink - g_Engine.time ) } );
+            #endif
 
             SetThink( ThinkFunction( this.state_find_candidate ) );
         }

@@ -56,9 +56,9 @@ mixin class CToggleState
             }
         }
 
-#if SERVER
-        g_Logger.trace( "Entity {}::{}::{} is been {}.", { self.entindex(), self.pev.classname, self.pev.targetname, ( ( pev.spawnflags & CToggleState_t::START_OFF ) == 0 ? "enabled" : "disabled" ) } );
-#endif
+        #if SERVER
+            g_Logger.trace( "Entity {}::{}::{} is been {}.", { self.entindex(), self.pev.classname, self.pev.targetname, ( ( pev.spawnflags & CToggleState_t::START_OFF ) == 0 ? "enabled" : "disabled" ) } );
+        #endif
 
         return ( ( pev.spawnflags & CToggleState_t::START_OFF ) == 0 );
     }
