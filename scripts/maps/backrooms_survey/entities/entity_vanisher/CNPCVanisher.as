@@ -16,8 +16,6 @@ namespace vanisher
 {
     class CNPCVanisher : ScriptBaseEntity, CToggleState, CFireTarget
     {
-        int m_iEnemy;
-
         // Keyvalues
         int m_min_cooldown = 1200;
         int m_max_cooldown = 6000;
@@ -124,16 +122,11 @@ namespace vanisher
             self.pev.solid = SOLID_NOT;
             self.pev.movetype = MOVETYPE_NONE;
 
-            g_EntityFuncs.SetOrigin( self, self.pev.origin );
-
-            if( self.pev.targetname == "" )
-                self.pev.targetname = "npc_vanisher_controller";
-
-            SetThink( ThinkFunction( this.state_find_candidate ) );
+            SetThink( ThinkFunction( this.state_emerge ) );
             pev.nextthink = g_Engine.time + 0.1f;
         }
 
-        void state_find_candidate()
+        void state_emerge()
         {
             pev.nextthink = g_Engine.time + 0.1f;
 
@@ -178,52 +171,35 @@ namespace vanisher
 
                 auto player = players[ Math.RandomLong( 0, players.length() - 1 ) ];
 
-                if( player !is null )
+                Vector vec_destination;
+
+                if( trace_hull( player.pev.origin, human_hull, 1024, vec_destination ) )
                 {
-                    m_iEnemy = player.entindex();
-                    Vector vec_destination;
+                    g_EntityFuncs.SetOrigin( self, vec_destination );
 
-                    if( trace_hull( player.pev.origin, human_hull, 1024, vec_destination ) )
-                    {
-                        g_EntityFuncs.SetOrigin( self, vec_destination );
-                        pev.nextthink = g_Engine.time + 4.0f;
-                        SetThink( ThinkFunction( this.state_emerge ) );
+                    #if SERVER
+                        m_Logger.info( "Got candidate {} to summon", { player.pev.netname } );
+                    #endif
 
-                        #if SERVER
-                            m_Logger.info( "Got candidate {} to summon in {} seconds", { player.pev.netname, ( pev.nextthink - g_Engine.time ) } );
-                        #endif
-                    }
-                }
-            }
-        }
+                    auto vanisher = create_vanisher();
 
-        void state_emerge()
-        {
-            pev.nextthink = g_Engine.time + 0.1f;
+                    /*
+                    * I've 1:1 scripted.cpp in the HLSDK but nope.
+                    * Seems sven cum has some hacky stuff going on so i made this stupid entity spawn.
+                    */
 
-            auto vanisher = create_vanisher();
+                    dictionary kv_pair;
+                    kv_pair[ "targetname" ] = "npc_vanisher_sequence";
+                    kv_pair[ "killtarget" ] = "npc_vanisher_sequence";
+                    kv_pair[ "m_iszEntity" ] = "npc_vanisher";
+                    kv_pair[ "m_iszPlay" ] = "ventclimb";
+                    kv_pair[ "m_iszIdle" ] = "ventclimbidle";
+                    kv_pair[ "m_flRadius" ] = "512";
+                    kv_pair[ "m_fMoveTo" ] = "4";
+                    kv_pair[ "spawnflags" ] = "96"; // ( verride AI | No Interruptions )
 
-            if( vanisher !is null )
-            {
-                /*
-                * I've 1:1 scripted.cpp in the HLSDK but nope.
-                * Seems sven cum has some hacky stuff going on so i made this stupid entity spawn.
-                */
+                    auto CineAI = g_EntityFuncs.CreateEntity( "scripted_sequence", kv_pair, true );
 
-                dictionary kv_pair;
-                kv_pair[ "targetname" ] = "npc_vanisher_sequence";
-                kv_pair[ "killtarget" ] = "npc_vanisher_sequence";
-                kv_pair[ "m_iszEntity" ] = "npc_vanisher";
-                kv_pair[ "m_iszPlay" ] = "ventclimb";
-                kv_pair[ "m_iszIdle" ] = "ventclimbidle";
-                kv_pair[ "m_flRadius" ] = "512";
-                kv_pair[ "m_fMoveTo" ] = "4";
-                kv_pair[ "spawnflags" ] = "96"; // ( verride AI | No Interruptions )
-
-                auto CineAI = g_EntityFuncs.CreateEntity( "scripted_sequence", kv_pair, true );
-
-                if( CineAI !is null )
-                {
                     TraceResult tr;
                     g_Utility.TraceLine( vanisher.pev.origin + Vector( 0, 0, 90 ), vanisher.pev.origin + Vector( 0, 0, -90 ), ignore_monsters, vanisher.edict(), tr );
                     g_Utility.DecalTrace( tr, DECAL_SCORCH1 );
@@ -232,31 +208,16 @@ namespace vanisher
                     FireTarget( "npc_vanisher_sequence", self, self, 1.4f );
 
                     pev.nextthink = g_Engine.time + 1.4f;
-                    SetThink( ThinkFunction( this.state_finish_emerge ) );
+                    SetThink( ThinkFunction( this.state_stalk ) );
 
-                    auto direction = ( g_EntityFuncs.Instance( m_iEnemy ).pev.origin - vanisher.pev.origin );
+                    auto direction = ( player.pev.origin - vanisher.pev.origin );
                     direction.z = 0;
                     g_EngineFuncs.VecToAngles( direction, vanisher.pev.angles );
 
                     g_EntityFuncs.SetOrigin( vanisher, tr.vecEndPos - Vector( 0, 0, 100 ) );
+                    vanisher.PushEnemy( player, player.pev.origin );
                 }
             }
-        }
-
-        void state_finish_emerge()
-        {
-            auto vanisher = m_hvanisher;
-
-            pev.nextthink = g_Engine.time + 0.1f;
-
-            if( vanisher.m_scriptState == SCRIPT_PLAYING ) {
-                return;
-            }
-
-            auto enemy = g_EntityFuncs.Instance( m_iEnemy );
-            vanisher.PushEnemy( enemy, enemy.pev.origin );
-
-            SetThink( ThinkFunction( this.state_stalk ) );
         }
 
         void state_stalk()
@@ -350,7 +311,7 @@ namespace vanisher
                 m_Logger.info( "Vanisher npc gone. summoning again in {}", { ( pev.nextthink - g_Engine.time ) } );
             #endif
 
-            SetThink( ThinkFunction( this.state_find_candidate ) );
+            SetThink( ThinkFunction( this.state_emerge ) );
         }
     }
 }

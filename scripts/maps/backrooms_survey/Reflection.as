@@ -48,7 +48,7 @@ namespace ReflectionWorkspace
                 {
                     f++;
 
-                    #if SERVER
+                    #if DISCARDED
                         m_Logger.trace( "Called \"{}::{}\"", { m_fFunction.GetNamespace(), m_fFunction.GetName() } );
                     #endif
 

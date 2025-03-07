@@ -41,7 +41,6 @@ def toggle_angelscript_preproccessors() -> None:
 
             lines = open( file, 'r' ).read();
 
-
     return None;
 
 toggle_angelscript_preproccessors();
