@@ -12,12 +12,14 @@
 *       - Mikk155 - Author -
 */
 
+#include "../../baseclass/CFireTarget"
+#include "../../baseclass/CToggleState"
+
 #if SERVER
 #include "../../utils/CLogger"
 #endif
 
-#include "../../baseclass/CFireTarget"
-#include "../../baseclass/CToggleState"
+#include "../../utils/trace_hull"
 
 #include "CVanisherTargets"
 

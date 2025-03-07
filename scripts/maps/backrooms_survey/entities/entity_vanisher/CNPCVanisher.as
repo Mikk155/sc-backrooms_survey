@@ -185,14 +185,17 @@ namespace vanisher
             if( player !is null )
             {
                 m_iEnemy = player.entindex();
-                g_EntityFuncs.SetOrigin( self, player.pev.origin );
+                Vector vec_destination;
 
+                if( trace_hull( player.pev.origin, human_hull, 1024, vec_destination ) )
+                {
+                    g_EntityFuncs.SetOrigin( self, vec_destination );
+                    pev.nextthink = g_Engine.time + 4.0f;
+                    SetThink( ThinkFunction( this.state_emerge ) );
 #if SERVER
-                m_Logger.info( "Got candidate {} to summon in {} seconds", { player.pev.netname, ( pev.nextthink - g_Engine.time ) } );
+                    m_Logger.info( "Got candidate {} to summon in {} seconds", { player.pev.netname, ( pev.nextthink - g_Engine.time ) } );
 #endif
-
-                pev.nextthink = g_Engine.time + 4.0f;
-                SetThink( ThinkFunction( this.state_emerge ) );
+                }
             }
         }
 
