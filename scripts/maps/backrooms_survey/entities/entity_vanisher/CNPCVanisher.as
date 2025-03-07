@@ -113,6 +113,7 @@ namespace vanisher
             // This precaches the gsr and model then removes the entity.
             auto vanisher = create_vanisher();
             g_EntityFuncs.Remove( vanisher );
+            g_Game.PrecacheOther( "_vanisher_puddle_" );
         }
 
         void Spawn()
@@ -191,6 +192,7 @@ namespace vanisher
                     dictionary kv_pair;
                     kv_pair[ "targetname" ] = "npc_vanisher_sequence";
                     kv_pair[ "killtarget" ] = "npc_vanisher_sequence";
+                    kv_pair[ "target" ] = "npc_vanisher_effect";
                     kv_pair[ "m_iszEntity" ] = "npc_vanisher";
                     kv_pair[ "m_iszPlay" ] = "ventclimb";
                     kv_pair[ "m_iszIdle" ] = "ventclimbidle";
@@ -202,12 +204,16 @@ namespace vanisher
 
                     TraceResult tr;
                     g_Utility.TraceLine( vanisher.pev.origin + Vector( 0, 0, 90 ), vanisher.pev.origin + Vector( 0, 0, -90 ), ignore_monsters, vanisher.edict(), tr );
-                    g_Utility.DecalTrace( tr, DECAL_SCORCH1 );
+
+                    auto effects = g_EntityFuncs.Create( "_vanisher_effects_", tr.vecEndPos, g_vecZero, false, self.edict() );
+                    effects.pev.skin = 1;
+                    effects.pev.targetname = "npc_vanisher_effect";
+
                     g_EntityFuncs.SetOrigin( CineAI, tr.vecEndPos );
 
                     FireTarget( "npc_vanisher_sequence", self, self, 1.4f );
 
-                    pev.nextthink = g_Engine.time + 1.4f;
+                    pev.nextthink = g_Engine.time + 3.4f;
                     SetThink( ThinkFunction( this.state_stalk ) );
 
                     auto direction = ( player.pev.origin - vanisher.pev.origin );
@@ -301,6 +307,7 @@ namespace vanisher
             dictionary kv_pair;
             kv_pair[ "killtarget" ] = "npc_vanisher";
             kv_pair[ "targetname" ] = "npc_vanisher";
+            kv_pair[ "target" ] = "npc_vanisher_effect";
             kv_pair[ "m_iszEntity" ] = "npc_vanisher";
             kv_pair[ "m_iszPlay" ] = "ventclimbdown";
             kv_pair[ "m_iszIdle" ] = "idle";
@@ -312,7 +319,9 @@ namespace vanisher
 
             TraceResult tr;
             g_Utility.TraceLine( vanisher.pev.origin + Vector( 0, 0, 90 ), vanisher.pev.origin + Vector( 0, 0, -90 ), ignore_monsters, vanisher.edict(), tr );
-            g_Utility.DecalTrace( tr, DECAL_SCORCH1 );
+
+            auto effects = g_EntityFuncs.Create( "_vanisher_effects_", tr.vecEndPos, g_vecZero, false, self.edict() );
+            effects.pev.targetname = "npc_vanisher_effect";
 
             g_EntityFuncs.SetOrigin( CineAI, tr.vecEndPos );
             CineAI.pev.angles = vanisher.pev.angles;

@@ -23,6 +23,8 @@
 
 #include "CVanisherTargets"
 
+#include "CVanisherEffects"
+
 #include "CNPCVanisher"
 
 namespace vanisher
@@ -33,7 +35,10 @@ namespace vanisher
 
     void On_MapInit( CHookModule@ pHookInfo )
     {
+        custom_precache( "sprites/brp/vanisher.spr" );
+        custom_precache( "models/brp/npcs/vanisher_puddle.mdl" );
         g_CustomEntityFuncs.RegisterCustomEntity( "vanisher::CNPCVanisher", "npc_vanisher" );
+        g_CustomEntityFuncs.RegisterCustomEntity( "vanisher::CVanisherEffects", "_vanisher_effects_" );
         g_CustomEntityFuncs.RegisterCustomEntity( "vanisher::CVanisherTargets", "info_vanisher_destination" );
     }
 
