@@ -176,5 +176,53 @@ namespace camera
         {
             shouldtoggle( use_type );
         }
+
+        void pictured( CBasePlayer@ player )
+        {
+            if( player is null )
+                return;
+
+            auto vec_ent_to_player = ( pev.origin - player.pev.origin ).Normalize();
+
+            g_EngineFuncs.MakeVectors( player.pev.v_angle );
+
+            float dot_prod = DotProduct( g_Engine.v_forward, vec_ent_to_player );
+            float dot_right = DotProduct( g_Engine.v_right,     vec_ent_to_player );
+            float dot_updw = DotProduct( g_Engine.v_up,        vec_ent_to_player );
+
+            float angle_yaw = abs( atan2( dot_right, dot_prod ) * 57.29578 );
+            float angle_upd = abs( atan2( dot_updw, dot_prod ) * 57.29578 );
+
+            auto total_distance = ( self.Center() - player.pev.origin ).Length();
+
+            if( total_distance < 1000 && angle_yaw <= 60.0 && angle_upd <= 50.0 )
+            {
+                CPicture@ picture = CPicture( player.pev.origin + player.pev.view_ofs, player.pev.v_angle, self.entindex() );
+
+                if( picture !is null )
+                {
+                    auto user_data = player.GetUserData();
+                    auto pictured_entities = cast<dictionary>( user_data[ "pictures" ] );
+
+                    pictured_entities[ name ] = @picture;
+                    user_data[ "pictures" ] = pictured_entities;
+
+                    if( ( self.pev.spawnflags & 2 ) == 0 ) // Don't draw glow sprite.
+                    {
+                        auto spr = g_EntityFuncs.CreateSprite( ( glow_sprite != "" ? glow_sprite : "sprites/glow01.spr" ), self.pev.origin, true );
+
+                        if( spr !is null )
+                        {
+                            spr.AnimateAndDie( sprite_framerate);
+                            spr.pev.rendermode = sprite_rendermode;
+                            spr.pev.renderamt = sprite_renderamt;
+                            spr.pev.rendercolor = sprite_rendercolor;
+                        }
+                    }
+                }
+
+                FireTarget( m_trigger_on_picture, player );
+            }
+        }
     }
 }

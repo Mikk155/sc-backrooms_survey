@@ -359,6 +359,7 @@ namespace camera
             g_SoundSystem.EmitSoundDyn( player.edict(), CHAN_WEAPON, "cof/guns/camera/photo.ogg", VOL_NORM, ATTN_NORM, 0, PITCH_NORM );
             g_SoundSystem.EmitSoundDyn( player.edict(), CHAN_STATIC, "cof/guns/camera/charge.ogg", VOL_NORM, ATTN_NORM, 0, PITCH_NORM );
 
+            // Find env_info entities
             auto user_data = player.GetUserData();
 
             auto pictured_entities = cast<dictionary>( user_data[ "pictures" ] );
@@ -367,7 +368,7 @@ namespace camera
             {
                 auto entity = g_EntityFuncs.Instance( information_entities[ui] );
 
-                if( entity is null || entity.pev.classname != "env_info" )
+                if( entity is null )
                 {
                     information_entities.removeAt(ui);
                     continue;
@@ -381,43 +382,18 @@ namespace camera
                 if( pictured_entities.exists( env_info.name ) )
                     continue;
 
-                auto vec_ent_to_player = ( env_info.pev.origin - player.pev.origin ).Normalize();
+                env_info.pictured( player );
+            }
 
-                g_EngineFuncs.MakeVectors( player.pev.v_angle );
+            CBaseEntity@ renders = null;
 
-                float dot_prod = DotProduct( g_Engine.v_forward, vec_ent_to_player );
-                float dot_right = DotProduct( g_Engine.v_right,     vec_ent_to_player );
-                float dot_updw = DotProduct( g_Engine.v_up,        vec_ent_to_player );
+            while( ( @renders = g_EntityFuncs.FindEntityInSphere( renders, tr.vecEndPos, 1000, "env_camera_render", "classname" ) ) !is null )
+            {
+                auto render = cast<CCameraRender@>( CastToScriptClass( renders ) );
 
-                float angle_yaw = abs( atan2( dot_right, dot_prod ) * 57.29578 ); // ( 180.0 / 3.14159265358979323846 ) idk
-                float angle_upd = abs( atan2( dot_updw, dot_prod ) * 57.29578 );
-
-                auto total_distance = ( entity.Center() - player.pev.origin ).Length();
-
-                if( total_distance < 1000 && angle_yaw <= 60.0 && angle_upd <= 50.0 )
+                if( render !is null && render.shouldtoggle() )
                 {
-                    CPicture@ picture = CPicture( player.pev.origin + player.pev.view_ofs, player.pev.v_angle, entity.entindex() );
-
-                    if( picture !is null )
-                    {
-                        pictured_entities[ env_info.name ] = @picture;
-                        user_data[ "pictures" ] = pictured_entities;
-
-                        if( ( entity.pev.spawnflags & 2 ) == 0 ) // Don't draw glow sprite.
-                        {
-                            auto spr = g_EntityFuncs.CreateSprite( ( env_info.glow_sprite != "" ? env_info.glow_sprite : "sprites/glow01.spr" ), entity.pev.origin, true );
-
-                            if( spr !is null )
-                            {
-                                spr.AnimateAndDie( env_info.sprite_framerate);
-                                spr.pev.rendermode = env_info.sprite_rendermode;
-                                spr.pev.renderamt = env_info.sprite_renderamt;
-                                spr.pev.rendercolor = env_info.sprite_rendercolor;
-                            }
-                        }
-                    }
-
-                    env_info.FireTarget( env_info.m_trigger_on_picture, player );
+                    render.picture();
                 }
             }
 

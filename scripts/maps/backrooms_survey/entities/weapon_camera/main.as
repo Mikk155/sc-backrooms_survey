@@ -24,6 +24,7 @@
 #include "../../utils/menu"
 
 #include "CEnvironmentInformation"
+#include "CCameraRender"
 #include "CWeaponCamera"
 
 namespace camera
@@ -51,7 +52,7 @@ namespace camera
     void On_MapInit( CHookModule@ pHookInfo )
     {
         g_CustomEntityFuncs.RegisterCustomEntity( "camera::CEnvironmentInformation", "env_info" );
-
+        g_CustomEntityFuncs.RegisterCustomEntity( "camera::CCameraRender", "env_camera_render" );
         g_CustomEntityFuncs.RegisterCustomEntity( "camera::CWeaponCamera", "weapon_camera" );
         g_ItemRegistry.RegisterWeapon( "weapon_camera", "brp", "357", "", "ammo_357" );
     }

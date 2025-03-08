@@ -102,6 +102,17 @@
     sprite_rendercolor(color255) : "[Sprite] FX Color (R G B)"
 ]
 
+@PointClass base( CToggleState, CFireTargetWithoutTarget ) = env_camera_render : "Renders and solidify a entity when gets pictured.."
+[
+    m_trigger_on_picture(target_destination) : "[Trigger] when pictured" : "" : "Trigger when a picture is taken. this will happen more than once if the entity has time to render > -1. the player is the activator"
+    target(string) : "Target entity" : "" : ""
+    m_wait(float) : "Time to render (0 = keep visible)" : "0.0"
+    spawnflags(Flags) =
+    [
+        2: "Make non-solid" : 1 : "If set. the target entity will be non-solid until it's pictured"
+    ]
+]
+
 @PointClass base( CToggleState, Angles, CFireTarget, ) = info_vanisher_destination : "npc vanisher's destinations"
 [
 ]
