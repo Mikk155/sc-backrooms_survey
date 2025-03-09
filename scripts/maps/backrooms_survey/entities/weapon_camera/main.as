@@ -16,7 +16,7 @@
     #include "../../utils/CLogger"
 #endif
 
-#include "../../baseclass/CFireTarget"
+#include "../../baseclass/CFireTargets"
 #include "../../baseclass/CToggleState"
 
 #include "../../utils/CRendering"

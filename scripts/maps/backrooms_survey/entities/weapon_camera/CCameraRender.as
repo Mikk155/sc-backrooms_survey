@@ -14,18 +14,14 @@
 
 namespace camera
 {
-    class CCameraRender : ScriptBaseEntity, CToggleState, CFireTarget
+    class CCameraRender : ScriptBaseEntity, CToggleState, CFireTargets
     {
         string m_trigger_on_picture;
         float m_wait;
 
         bool KeyValue( const string& in key, const string& in value )
         {
-            if( CFireTarget( key, value ) )
-            {
-                return true;
-            }
-            else if( key == "m_trigger_on_picture" )
+            if( key == "m_trigger_on_picture" )
             {
                 m_trigger_on_picture = value;
                 return true;
@@ -34,7 +30,7 @@ namespace camera
             {
                 m_wait = atof( value );
             }
-            return false;
+            return ( CFireTargets(key,value) );
         }
 
         void Spawn()

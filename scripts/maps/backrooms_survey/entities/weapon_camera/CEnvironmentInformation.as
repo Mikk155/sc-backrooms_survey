@@ -14,7 +14,7 @@
 
 namespace camera
 {
-    class CEnvironmentInformation : ScriptBaseEntity, CToggleState, CFireTarget
+    class CEnvironmentInformation : ScriptBaseEntity, CToggleState, CFireTargets
     {
         string buffer;
         string name;
@@ -44,11 +44,7 @@ namespace camera
 
         bool KeyValue( const string& in key, const string& in value )
         {
-            if( CFireTarget( key, value ) )
-            {
-                return true;
-            }
-            else if( key == "m_information" )
+            if( key == "m_information" )
             {
                 if( value.EndsWith( ".txt" ) )
                 {
@@ -148,7 +144,7 @@ namespace camera
                 g_Utility.StringToVector( sprite_rendercolor, value );
                 return true;
             }
-            return false;
+            return ( CFireTargets(key,value) );
         }
 
         void Precache()
@@ -221,7 +217,7 @@ namespace camera
                     }
                 }
 
-                FireTarget( m_trigger_on_picture, player );
+                FireTargets( m_trigger_on_picture, player, self, m_usetype, 0, m_delay, m_killtarget );
             }
         }
     }

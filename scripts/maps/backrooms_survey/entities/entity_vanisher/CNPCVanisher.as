@@ -14,7 +14,7 @@
 
 namespace vanisher
 {
-    class CNPCVanisher : ScriptBaseEntity, CToggleState, CFireTarget
+    class CNPCVanisher : ScriptBaseEntity, CToggleState, CFireTargets
     {
         // Keyvalues
         int m_min_cooldown = 1200;
@@ -54,11 +54,7 @@ namespace vanisher
 
         bool KeyValue( const string& in key, const string& in value )
         {
-            if( CFireTarget( key, value ) )
-            {
-                return true;
-            }
-            else if( key == "m_min_cooldown" )
+            if( key == "m_min_cooldown" )
             {
                 m_min_cooldown = atoi( value );
                 return true;
@@ -83,7 +79,7 @@ namespace vanisher
                 m_health = atoi( value );
                 return true;
             }
-            return false;
+            return ( CFireTargets(key,value) );
         }
 
         CBaseMonster@ create_vanisher()
@@ -210,7 +206,7 @@ namespace vanisher
 
                     g_EntityFuncs.SetOrigin( CineAI, tr.vecEndPos );
 
-                    FireTarget( "npc_vanisher_sequence", self, self, 1.4f );
+                    FireTargets( "npc_vanisher_sequence", self, self, USE_ON, 0, 1.4f );
 
                     pev.nextthink = g_Engine.time + 3.4f;
                     SetThink( ThinkFunction( this.state_stalk ) );
@@ -306,7 +302,7 @@ namespace vanisher
             g_EntityFuncs.SetOrigin( CineAI, tr.vecEndPos );
             CineAI.pev.angles = vanisher.pev.angles;
 
-            FireTarget( "npc_vanisher", self, self, 1.4 );
+            FireTargets( "npc_vanisher", self, self, USE_ON, 0, 1.4 );
 
             // Set next summon time.
             pev.nextthink = g_Engine.time + float(

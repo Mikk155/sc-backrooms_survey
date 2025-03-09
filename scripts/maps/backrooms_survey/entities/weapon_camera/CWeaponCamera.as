@@ -172,7 +172,7 @@ namespace camera
                             hud_message::param.holdTime = env_info.m_watch_time;
                             hud_message::print( player, env_info.buffer);
 
-                            env_info.FireTarget( env_info.m_trigger_on_watch, player );
+                            FireTargets( env_info.m_trigger_on_watch, player, entity, env_info.m_usetype, 0, env_info.m_delay, env_info.m_killtarget );
 
                             watching_picture = g_Engine.time + env_info.m_watch_time;
                             player.pev.button = 0;

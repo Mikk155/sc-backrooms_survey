@@ -14,7 +14,7 @@
 
 namespace vanisher
 {
-    class CVanisherTargets : ScriptBaseEntity, CToggleState, CFireTarget
+    class CVanisherTargets : ScriptBaseEntity, CToggleState, CFireTargets
     {
         private int m_iplayer;
 
@@ -45,11 +45,7 @@ namespace vanisher
 
         bool KeyValue( const string& in key, const string& in value )
         {
-            if( CFireTarget( key, value ) )
-            {
-                return true;
-            }
-            return false;
+            return ( ( CFireTargets(key,value) ) );
         }
 
         void Use( CBaseEntity@ activator, CBaseEntity@ caller, USE_TYPE use_type, float value )
@@ -75,7 +71,7 @@ namespace vanisher
                 snprintf( targetname, "npc_vanisher_teleport_%1", m_iplayer );
                 effects.pev.targetname = targetname;
 
-                FireTarget( targetname, null, null, 4.0f );
+                FireTargets( targetname, player, self, m_usetype, 0, 4.0f, m_killtarget );
 
                 pev.nextthink = g_Engine.time;
                 SetThink( ThinkFunction( this.sink ) );
@@ -108,7 +104,7 @@ namespace vanisher
                     m_Logger.trace( "Teleported player {} to {}", { player.pev.netname, pev.origin.ToString() } );
                 #endif
 
-                FireTarget( player );
+                FireTargets( string(pev.target), player, self, m_usetype, 0, m_delay, m_killtarget );
 
                 g_PlayerFuncs.ScreenFade( player, g_vecZero, 0.5, 0.0, 255, FFADE_IN );
 

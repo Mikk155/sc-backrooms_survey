@@ -12,7 +12,7 @@
 *       - Mikk155 - Author -
 */
 
-#include "../../baseclass/CFireTarget"
+#include "../../baseclass/CFireTargets"
 #include "../../baseclass/CToggleState"
 
 #if SERVER
