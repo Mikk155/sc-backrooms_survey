@@ -216,7 +216,6 @@ namespace vanisher
 
                     auto CineAI = g_EntityFuncs.CreateEntity( "scripted_sequence", kv_pair, true );
 
-                    TraceResult tr;
                     g_Utility.TraceLine( vanisher.pev.origin + Vector( 0, 0, 90 ), vanisher.pev.origin + Vector( 0, 0, -90 ), ignore_monsters, vanisher.edict(), tr );
 
                     auto effects = g_EntityFuncs.Create( "_vanisher_effects_", tr.vecEndPos, g_vecZero, false, self.edict() );
