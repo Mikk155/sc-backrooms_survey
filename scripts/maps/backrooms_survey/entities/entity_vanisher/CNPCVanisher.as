@@ -175,7 +175,20 @@ namespace vanisher
 
                 Vector vec_destination;
 
-                if( trace_hull( player.pev.origin, human_hull, 1024, vec_destination ) )
+                // Try to get a random position. otherwise just do the spiral shit.
+                TraceResult tr;
+                g_Utility.TraceLine( player.pev.origin + player.pev.view_ofs, player.pev.origin +
+                    Vector( Math.RandomLong( -512, 512 ), Math.RandomLong( -512, 512 ), 0 ), dont_ignore_monsters, player.edict(), tr );
+
+                if( tr.flFraction >= 1.0 )
+                {
+                    g_Utility.TraceHull( tr.vecEndPos, tr.vecEndPos, dont_ignore_monsters, human_hull, null, tr );
+
+                    if( tr.fStartSolid == 0 && tr.fAllSolid == 0 )
+                        vec_destination = tr.vecEndPos;
+                }
+
+                if( vec_destination != g_vecZero || trace_hull( player.pev.origin, human_hull, 1024, vec_destination ) )
                 {
                     g_EntityFuncs.SetOrigin( self, vec_destination );
 
