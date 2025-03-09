@@ -29,6 +29,9 @@
 
 namespace camera
 {
+    const float MAX_BATTERY_CAPACITY = 10000.0f;
+    const int MAX_FOG_DISTANCE = 500;
+
     #if SERVER
         CLogger@ m_Logger = CLogger( "Camera" );
     #endif

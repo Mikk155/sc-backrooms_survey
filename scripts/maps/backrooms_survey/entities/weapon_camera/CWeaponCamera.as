@@ -19,9 +19,9 @@ namespace camera
     class CWeaponCamera : ScriptBasePlayerWeaponEntity
     {
         bool m_nightvision;
-        float m_nightvision_battery = 10000.0f;
+        float m_nightvision_battery = MAX_BATTERY_CAPACITY;
         int m_nightvision_radius;
-        int m_nightvision_fog = 500;
+        int m_nightvision_fog = MAX_FOG_DISTANCE;
 
         sprint_state m_sprint_state;
         float m_flNextSprintTime;
@@ -296,7 +296,7 @@ namespace camera
                 m.End();
 
                 if( m_nightvision_fog > 10 ) {
-                    m_nightvision_fog = Math.clamp( 10, 500, m_nightvision_fog - 9 );
+                    m_nightvision_fog = Math.clamp( 10, MAX_FOG_DISTANCE, m_nightvision_fog - 9 );
 
                     NetworkMessage fog( MSG_ONE_UNRELIABLE, NetworkMessages::Fog, player.edict() );
                         fog.WriteShort(0);
@@ -309,7 +309,7 @@ namespace camera
                         fog.WriteByte(10); // G
                         fog.WriteByte(0); // B
                         fog.WriteShort(m_nightvision_fog); // StartDist
-                        fog.WriteShort(500); // EndDist
+                        fog.WriteShort(MAX_FOG_DISTANCE); // EndDist
                     fog.End();
                 }
 
@@ -463,7 +463,7 @@ namespace camera
 
             m_nightvision = false;
             m_nightvision_radius = 0;
-            m_nightvision_fog = 500;
+            m_nightvision_fog = MAX_FOG_DISTANCE;
         }
 
         void Reload()
@@ -483,7 +483,7 @@ namespace camera
 
             ammo--;
             self.m_iClip = 1;
-            m_nightvision_battery = 10000.0f;
+            m_nightvision_battery = MAX_BATTERY_CAPACITY;
             player.m_rgAmmo( self.m_iPrimaryAmmoType, ammo );
 
             self.SendWeaponAnim( camera_anim::shoot );
