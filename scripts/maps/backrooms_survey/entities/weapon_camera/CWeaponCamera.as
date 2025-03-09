@@ -437,18 +437,26 @@ namespace camera
             {
                 if( was_on )
                 {
+                    auto user_data = player.GetUserData();
+
+                    // Epic shit hack to not mess up with the map's fog :/
+                    array<int>@ fog_details = array<int>( user_data[ "pre_camera_fog" ] );
+
+                    if( fog_details is null || fog_details.length() < 11 )
+                        fog_details = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 500 };
+
                     NetworkMessage fog( MSG_ONE_UNRELIABLE, NetworkMessages::Fog, player.edict() );
-                        fog.WriteShort(0);
-                        fog.WriteByte(0);
-                        fog.WriteCoord(0);
-                        fog.WriteCoord(0);
-                        fog.WriteCoord(0);
-                        fog.WriteShort(0);
-                        fog.WriteByte(0); // R
-                        fog.WriteByte(10); // G
-                        fog.WriteByte(0); // B
-                        fog.WriteShort(10); // StartDist
-                        fog.WriteShort(500); // EndDist
+                        fog.WriteShort( fog_details[0] );
+                        fog.WriteByte( fog_details[1] );
+                        fog.WriteCoord( fog_details[2] );
+                        fog.WriteCoord( fog_details[3] );
+                        fog.WriteCoord( fog_details[4] );
+                        fog.WriteShort( fog_details[5] );
+                        fog.WriteByte( fog_details[6] ); // R
+                        fog.WriteByte( fog_details[7] ); // G
+                        fog.WriteByte( fog_details[8] ); // B
+                        fog.WriteShort( fog_details[9] ); // StartDist
+                        fog.WriteShort( fog_details[10] ); // EndDist
                     fog.End();
 
                     NetworkMessage mlight( MSG_ONE_UNRELIABLE, NetworkMessages::NetworkMessageType(12), player.edict() );
