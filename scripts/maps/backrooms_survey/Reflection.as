@@ -124,7 +124,7 @@ namespace ReflectionWorkspace
 
         g_Reflection.Call( "on_playerthink", @pHookModule );
 
-        return HOOK_CONTINUE;
+        return HOOK_HANDLED;
     }
 
     HookReturnCode PlayerSpawn( CBasePlayer@ player )
@@ -135,7 +135,7 @@ namespace ReflectionWorkspace
 
         g_Reflection.Call( "on_playerspawn", @pHookModule );
 
-        return HOOK_CONTINUE;
+        return HOOK_HANDLED;
     }
 
     HookReturnCode PlayerTakeDamage( DamageInfo@ pDamageInfo )
@@ -158,7 +158,7 @@ namespace ReflectionWorkspace
         pDamageInfo.flDamage = pHookModule.damage;
         pDamageInfo.bitsDamageType = pHookModule.damage_bits;
 
-        return HOOK_CONTINUE;
+        return HOOK_HANDLED;
     }
 }
 
@@ -178,6 +178,7 @@ class CHookModule
 
     CBasePlayer@ player;
 
+    // TakeDamageHook. `player` will also be `victim`
     CBaseEntity@ victim;
     CBaseEntity@ attacker;
     CBaseEntity@ inflictor;

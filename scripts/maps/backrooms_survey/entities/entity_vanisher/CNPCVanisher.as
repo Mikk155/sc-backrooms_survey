@@ -22,6 +22,7 @@ namespace vanisher
         int m_retire_time = 10;
         int m_frags = 100;
         int m_health = 10;
+        float m_maxspeed = 3.0f;
 
         CBaseMonster@ m_hvanisher
         {
@@ -77,6 +78,11 @@ namespace vanisher
             else if( key == "m_health" )
             {
                 m_health = atoi( value );
+                return true;
+            }
+            else if( key == "m_maxspeed" )
+            {
+                m_maxspeed = atof( value );
                 return true;
             }
             return ( CFireTargets(key,value) );
@@ -232,6 +238,8 @@ namespace vanisher
             }
 
             auto vanisher = m_hvanisher;
+
+            vanisher.pev.framerate = Math.max( 1.0f, Math.min( m_maxspeed, m_maxspeed - ( ( vanisher.pev.health / m_health ) * ( m_maxspeed - 1.0f ) ) ) );
 
             if( vanisher.pev.frags <= 0 )
             {

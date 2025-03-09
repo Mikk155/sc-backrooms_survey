@@ -78,7 +78,9 @@ namespace vanisher
             {
                 auto candidate = g_PlayerFuncs.FindPlayerByIndex( i );
 
-                if( candidate !is null && candidate.IsAlive() && ( candidate.pev.flags & FL_NOTARGET ) == 0 && vanisher.FGetNodeRoute( candidate.pev.origin ) && ( near_entity is null
+                // -TODO commented due to lack of FGetNodeRoute
+//                if( candidate !is null && candidate.IsAlive() && ( candidate.pev.flags & FL_NOTARGET ) == 0 && vanisher.FGetNodeRoute( candidate.pev.origin ) && ( near_entity is null
+                if( candidate !is null && candidate.IsAlive() && ( candidate.pev.flags & FL_NOTARGET ) == 0 && ( near_entity is null
                 || ( candidate.pev.origin - vanisher.pev.origin ).Length() < ( near_entity.pev.origin - vanisher.pev.origin ).Length() ) )
                 {
                     @near_entity = candidate;

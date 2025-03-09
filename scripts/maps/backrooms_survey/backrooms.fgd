@@ -120,9 +120,10 @@
 
 @PointClass base( CToggleState ) = npc_vanisher : "npc vanisher"
 [
-    m_min_cooldown(integer) : "Minimun cooldown time" : 1200
-    m_max_cooldown(integer) : "Maximun cooldown time" : 6000
-    m_retire_time(integer) : "Idle time until retire" : 10
-    m_health(integer) : "Health until vanish" : 10
-    m_frags(integer) : "Frags per health state" : 100
+    m_min_cooldown(integer) : "Minimun cooldown time" : 1200 : "Minimun cooldown. this is not random. based on player count, the greater the player count the lower the spawn time will be. i'e with 32 players. THIS is the cooldown"
+    m_max_cooldown(integer) : "Maximun cooldown time" : 6000 : "Maximun cooldown. this is not random. based on player count, the greater the player count the lower the spawn time will be. i'e with only one player. THIS is the cooldown"
+    m_retire_time(integer) : "Idle time until retire" : 10 : "Time to keep roaming until retire. this happens when the monster hp reach 0"
+    m_health(integer) : "Health until vanish" : 10 : "When 0. the monster waits for 'Idle time until retire' then retires and is removed from the world. then spawn again in the proper cooldown."
+    m_frags(integer) : "Frags per health state" : 100 : "0.1 is substracted every frame if the monster lost sight of his enemy. once reach 0 it will decrease 1 of health"
+    m_maxspeed(integer) : "Maximun framerate speedup" : 3.0f : "This is the maximun value for framerate to set when the entity is getting lower and lower on health"
 ]
