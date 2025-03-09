@@ -73,7 +73,7 @@ class FireTargets
             g_Scheduler.SetTimeout( @this, "_FireTargets_", this.delay );
 
             #if SERVER
-                FireTargets_Logger.trace( "Delayed of trigger {} in {}", { _target, delay } );
+                FireTargets_Logger.trace( "Delayed of trigger {} in {}", { this.target, delay } );
             #endif
         }
         else
