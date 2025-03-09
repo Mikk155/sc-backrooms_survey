@@ -88,6 +88,53 @@ class CLogger
     {
         g_Game.AlertMessage( at_aiconsole, this._format_( fmt, args ) );
     }
+
+    string entname( CBaseEntity@ entity )
+    {
+        string name = String::EMPTY_STRING;
+
+        if( entity !is null )
+        {
+            if( entity.IsPlayer() )
+            {
+                snprintf( name, "%1", entity.pev.netname );
+            }
+            else if( entity.IsMonster() )
+            {
+                snprintf( name, "%1", cast<CBaseMonster@>( entity ).m_FormattedName );
+
+                if( entity.pev.targetname != "" )
+                    snprintf( name, "%1 name: %2", entity.pev.targetname );
+            }
+            else
+            {
+                snprintf( name, "%1", entity.pev.classname );
+
+                if( entity.pev.targetname != "" )
+                    snprintf( name, "%1 name: %2", entity.pev.targetname );
+            }
+        }
+
+        return name;
+    }
+
+    string usename(int usetype)
+    {
+        switch( usetype )
+        {
+            case USE_OFF:
+                return "0 [USE_OFF]";
+            case USE_ON:
+                return "1 [USE_ON]";
+            case USE_SET:
+                return "2 [USE_SET]";
+            case USE_TOGGLE:
+                return "3 [USE_TOGGLE]";
+            case USE_KILL:
+            default:
+                return "4 [USE_KILL]";
+        }
+    }
 }
 
 CLogger@ g_Logger = CLogger( "Map Scripts" );
