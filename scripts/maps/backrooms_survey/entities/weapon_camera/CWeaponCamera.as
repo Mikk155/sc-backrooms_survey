@@ -76,7 +76,7 @@ namespace camera
             player.set_m_szAnimExtension( "trip" );
 
     //        pev.body = g_ModelFuncs.SetBodygroup( g_ModelFuncs.ModelIndex( "models/cof/camera/vwm.mdl" ), pev.body, 0, 0 );
-            self.SendWeaponAnim( CoFCAMERA_DRAW, 0, pev.body );
+            self.SendWeaponAnim( camera_anim::draw, 0, pev.body );
 
             player.m_flNextAttack = 0;
             self.m_flNextPrimaryAttack = self.m_flTimeWeaponIdle = self.m_flNextSecondaryAttack = g_Engine.time + 0.2;
@@ -100,19 +100,19 @@ namespace camera
             switch( Math.RandomLong( 0, 3 ) )
             {
                 case 1:
-                    self.SendWeaponAnim( CoFCAMERA_FIDGET1, 0, 0 );
+                    self.SendWeaponAnim( camera_anim::fidget1, 0, 0 );
                 break;
 
                 case 2:
-                    self.SendWeaponAnim( CoFCAMERA_FIDGET2, 0, 0 );
+                    self.SendWeaponAnim( camera_anim::fidget2, 0, 0 );
                 break;
 
                 case 3:
-                    self.SendWeaponAnim( CoFCAMERA_FIDGET3, 0, 0 );
+                    self.SendWeaponAnim( camera_anim::fidget3, 0, 0 );
                 break;
 
                 default:
-                    self.SendWeaponAnim( CoFCAMERA_IDLE, 0, 0 );
+                    self.SendWeaponAnim( camera_anim::idle, 0, 0 );
                 break;
             }
 
@@ -248,7 +248,7 @@ namespace camera
                 {
                     if( player.pev.velocity.Make2D().Length() > 100 )
                     {
-                        self.SendWeaponAnim( CoFCAMERA_SPRINT_TO, 0, 0 );
+                        self.SendWeaponAnim( camera_anim::sprint_to, 0, 0 );
                         m_sprint_state = sprint_state::sprint_start;
                         m_flNextSprintTime = g_Engine.time + 0.3f;
                         self.m_flTimeWeaponIdle = g_Engine.time + 1.0f;
@@ -256,21 +256,21 @@ namespace camera
                 }
                 else if( m_sprint_state == sprint_state::sprint_start )
                 {
-                    self.SendWeaponAnim( CoFCAMERA_SPRINT_IDLE, 0, 0 );
+                    self.SendWeaponAnim( camera_anim::sprint_idle, 0, 0 );
                     m_sprint_state = sprint_state::sprint_loop;
                     m_flNextSprintTime = g_Engine.time + 0.5f;
                     self.m_flTimeWeaponIdle = g_Engine.time + 1.0f;
                 }
                 else if( player.pev.velocity.Make2D().Length() > 100 )
                 {
-                    self.SendWeaponAnim( CoFCAMERA_SPRINT_IDLE, 0, 0 );
+                    self.SendWeaponAnim( camera_anim::sprint_idle, 0, 0 );
                     m_flNextSprintTime = g_Engine.time + 0.65f;
                     self.m_flTimeWeaponIdle = g_Engine.time + 1.0f;
                 }
             }
             else if( m_sprint_state == sprint_state::sprint_loop && ( player.pev.velocity.Make2D().Length() <= 100 || !on_ground ) )
             {
-                self.SendWeaponAnim( CoFCAMERA_SPRINT_FROM, 0, 0 );
+                self.SendWeaponAnim( camera_anim::sprint_from, 0, 0 );
                 m_sprint_state = sprint_state::sprint_no;
                 m_flNextSprintTime = g_Engine.time + 0.5f;
                 self.m_flTimeWeaponIdle = g_Engine.time + 1.0f;
@@ -336,7 +336,7 @@ namespace camera
             if( player is null )
                 return;
 
-            self.SendWeaponAnim( CoFCAMERA_SHOOT );
+            self.SendWeaponAnim( camera_anim::shoot );
 
             TraceResult tr;
             g_Utility.TraceLine( player.GetGunPosition(), player.GetGunPosition() + g_Engine.v_forward * 128, dont_ignore_monsters, dont_ignore_glass, player.edict(), tr );
@@ -416,7 +416,7 @@ namespace camera
                 mlight.WriteString( "z" );
                 mlight.End();
 
-                self.SendWeaponAnim( CoFCAMERA_HOLSTER );
+                self.SendWeaponAnim( camera_anim::holster );
                 g_PlayerFuncs.ScreenFade( player, Vector( 0, 200, 20 ), 1.0f, 0.5f, 100.0f, FFADE_STAYOUT | FFADE_MODULATE | FFADE_OUT );
                 g_SoundSystem.EmitSoundDyn( player.edict(), CHAN_WEAPON, "cof/guns/camera/charge.ogg", VOL_NORM, ATTN_NORM, 0, PITCH_NORM );
                 self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 1.0f;
@@ -424,7 +424,7 @@ namespace camera
             else
             {
                 shutdown_nightvision(true);
-                self.SendWeaponAnim( CoFCAMERA_DRAW_FIRST );
+                self.SendWeaponAnim( camera_anim::draw_first );
                 self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 1.63f;
             }
         }
@@ -486,7 +486,7 @@ namespace camera
             m_nightvision_battery = 10000.0f;
             player.m_rgAmmo( self.m_iPrimaryAmmoType, ammo );
 
-            self.SendWeaponAnim( CoFCAMERA_SHOOT );
+            self.SendWeaponAnim( camera_anim::shoot );
 
             g_SoundSystem.EmitSoundDyn( player.edict(), CHAN_WEAPON, "cof/guns/camera/lever.ogg", VOL_NORM, ATTN_NORM, 0, PITCH_NORM );
 

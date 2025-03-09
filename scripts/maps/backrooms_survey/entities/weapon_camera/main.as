@@ -76,20 +76,22 @@ namespace camera
 
     enum camera_anim
     {
-        CoFCAMERA_IDLE = 0,
-        CoFCAMERA_DRAW_FIRST,
-        CoFCAMERA_HOLSTER,
-        CoFCAMERA_SHOOT,
-        CoFCAMERA_FIDGET1,
-        CoFCAMERA_JUMP_TO,
-        CoFCAMERA_JUMP_FROM,
-        CoFCAMERA_DRAW,
-        CoFCAMERA_FIDGET2,
-        CoFCAMERA_FIDGET3,
-        CoFCAMERA_SPRINT_TO,
-        CoFCAMERA_SPRINT_IDLE,
-        CoFCAMERA_SPRINT_FROM,
-        CoFCAMERA_MELEE 
+        idle = 0,
+        draw_first,
+        holster,
+        shoot,
+        fidget1,
+        jump_to,
+        jump_from,
+        draw,
+        fidget2,
+        fidget3,
+        sprint_to,
+        sprint_idle,
+        sprint_from,
+        melee,
+        iron_sight_to,
+        iron_sight_from
     };
 
     enum sprint_state
