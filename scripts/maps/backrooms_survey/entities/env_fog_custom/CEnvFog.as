@@ -27,7 +27,6 @@ namespace fog
             g_EntityFuncs.SetOrigin( self, self.pev.origin );
         }
 
-        fog_type m_type = fog_type::all_players;
         int m_radius = 1024;
         int m_distance_start = 128;
         int m_distance_end = 1024;
@@ -35,12 +34,7 @@ namespace fog
 
         bool KeyValue( const string& in key, const string& in value )
         {
-            if( key == "m_type" )
-            {
-                m_type = fog_type( Math.clamp( fog_type::all_players, fog_type::radius, atoi( value ) ) );
-                return true;
-            }
-            else if( key == "m_radius" )
+            if( key == "m_radius" )
             {
                 m_radius = atoi( value );
                 return true;
@@ -74,49 +68,8 @@ namespace fog
 
         void Use( CBaseEntity@ activator, CBaseEntity@ caller, USE_TYPE use_type, float value )
         {
-            switch( m_type )
-            {
-                case fog_type::all_players:
-                {
-                    for( int i = 1; i <= g_Engine.maxClients; i++ )
-                    {
-                        auto player = g_PlayerFuncs.FindPlayerByIndex( i );
-
-                        if( player !is null )
-                        {
-                            entities[player.entindex()-1] = ( entities[player.entindex()-1] == self.entindex() ? 0 : self.entindex() );
-                        }
-                    }
-                    break;
-                }
-                case fog_type::activator_only:
-                {
-                    if( activator is null )
-                    {
-                        #if SERVER
-                            m_Logger.warn( "Null activator for {} at {}", { pev.targetname, pev.origin.ToString() } );
-                        #endif
-                        break;
-                    }
-
-                    if( !activator.IsPlayer() )
-                    {
-                        #if SERVER
-                            m_Logger.warn( "Non-Player activator for {} at {} got {} as activator", { pev.targetname, pev.origin.ToString(), activator.pev.classname } );
-                        #endif
-                        break;
-                    }
-
-                    entities[activator.entindex()-1] = ( entities[activator.entindex()-1] == self.entindex() ? 0 : self.entindex() );
-                    break;
-                }
-                case fog_type::radius:
-                {
-                    shouldtoggle( use_type );
-                    self.pev.nextthink = g_Engine.time;
-                    break;
-                }
-            }
+            shouldtoggle( use_type );
+            self.pev.nextthink = g_Engine.time;
         }
 
         void think()

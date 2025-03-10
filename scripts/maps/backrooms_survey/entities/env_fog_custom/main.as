@@ -29,13 +29,6 @@ namespace fog
         CLogger@ m_Logger = CLogger( "Fog Entity" );
     #endif
 
-    enum fog_type
-    {
-        all_players = 0,
-        activator_only,
-        radius
-    };
-
     array<int> entities(g_Engine.maxClients);
 
     void On_MapInit( CHookModule@ pHookInfo )
@@ -75,25 +68,25 @@ namespace fog
 
             auto user_data = player.GetUserData();
 
-            // Are we using the camera's night vision?
-            if( bool( user_data[ "camera_nightvision" ] ) )
-                continue;
-
             fog_state state = fog_state( user_data[ "env_fog_custom_state" ] );
 
             // Fog entity
             auto entity = ( entities[ui] == 0 ? null : g_EntityFuncs.Instance( entities[ui] ) );
 
-            array<int>@ fog_details = array<int>( user_data[ "pre_camera_fog" ] );
+            array<int>@ fog_details = array<int>( user_data[ "env_fog_custom_values" ] );
 
             // Define in case is the first time.
             if( fog_details is null || fog_details.length() < 6 )
+            {
                 fog_details = { 0, 0, 0, 0, 0, 0 };
+                user_data[ "env_fog_custom_state" ] = state = fog_state::disabled;
+            }
 
             // If is null clear and set as disabling.
             if( entity is null )
             {
                 entities[ui] = 0;
+
                 user_data[ "env_fog_custom_state" ] = state = fog_state::disabling;
             }
             else if( state == fog_state::disabled && entity.pev.classname == "env_fog_custom" ) // Fog disabled but we got a entity so start enabling.
@@ -150,6 +143,12 @@ namespace fog
             }
             else if( state == fog_state::disabling )
             {
+                if( entity !is null && entity.pev.classname == "env_fog_custom" ) // Has this been enabled during running?
+                {
+                    user_data[ "env_fog_custom_state" ] = state = fog_state::disabled;
+                    continue;
+                }
+
                 int c_start = fog_details[fog_t::start];
 
                 if( c_start < DEFAUL_START_LEVEL )
@@ -170,13 +169,31 @@ namespace fog
                 if( fog_details[fog_t::start] == DEFAUL_START_LEVEL && fog_details[fog_t::end] == DEFAUL_END_LEVEL )
                 {
                     fog_details[fog_t::state] = 0;
+
                     user_data[ "env_fog_custom_state" ] = fog_state::disabled;
                 }
             }
 
             if( should_update )
             {
-                user_data[ "pre_camera_fog" ] = fog_details;
+                #if SERVER
+                    m_Logger.trace( "State: {} start: {} end: {} RGB: {} {} {} player:", {
+                        fog_details[fog_t::state] == 1 ? "ON" : "OFF",
+                        fog_details[fog_t::start],
+                        fog_details[fog_t::end],
+                        fog_details[fog_t::red],
+                        fog_details[fog_t::green],
+                        fog_details[fog_t::blue],
+                        player.pev.netname
+                    } );
+                #endif
+
+                user_data[ "env_fog_custom_values" ] = fog_details;
+
+                // Are we using the camera's night vision?
+                if( bool( user_data[ "camera_nightvision" ] ) )
+                    continue;
+
                 NetworkMessage fog( MSG_ONE_UNRELIABLE, NetworkMessages::Fog, player.edict() );
                     fog.WriteShort(0);
                     fog.WriteByte( fog_details[fog_t::state] );

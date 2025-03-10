@@ -441,24 +441,25 @@ namespace camera
                 if( was_on )
                 {
                     // Epic shit hack to not mess up with the map's fog :/
-                    array<int>@ fog_details = array<int>( user_data[ "pre_camera_fog" ] );
+                    array<int>@ fog_details = array<int>( user_data[ "env_fog_custom_values" ] );
 
-                    if( fog_details is null || fog_details.length() < 6 || fog_details[0] == 0 )
-                    {
-                        NetworkMessage fog( MSG_ONE_UNRELIABLE, NetworkMessages::Fog, player.edict() );
-                            fog.WriteShort(0);
-                            fog.WriteByte(0);
-                            fog.WriteCoord(0);
-                            fog.WriteCoord(0);
-                            fog.WriteCoord(0);
-                            fog.WriteShort(0);
-                            fog.WriteByte(0);
-                            fog.WriteByte(0);
-                            fog.WriteByte(0);
-                            fog.WriteShort(0);
-                            fog.WriteShort(0);
-                        fog.End();
-                    }
+                    // Define in case is the first time.
+                    if( fog_details is null || fog_details.length() < 6 )
+                        fog_details = { 0, 0, 0, 0, 0, 0 };
+
+                    NetworkMessage fog( MSG_ONE_UNRELIABLE, NetworkMessages::Fog, player.edict() );
+                        fog.WriteShort(0);
+                        fog.WriteByte( fog_details[0] );
+                        fog.WriteCoord(0);
+                        fog.WriteCoord(0);
+                        fog.WriteCoord(0);
+                        fog.WriteShort(0);
+                        fog.WriteByte( fog_details[1] );
+                        fog.WriteByte( fog_details[2] );
+                        fog.WriteByte( fog_details[3] );
+                        fog.WriteShort( fog_details[4] );
+                        fog.WriteShort( fog_details[5] );
+                    fog.End();
 
                     NetworkMessage mlight( MSG_ONE_UNRELIABLE, NetworkMessages::NetworkMessageType(12), player.edict() );
                     mlight.WriteByte( 0 );
