@@ -408,6 +408,7 @@ namespace camera
                 return;
 
             m_nightvision = !m_nightvision;
+            player.GetUserData()[ "camera_nightvision" ] = m_nightvision;
 
             if( m_nightvision )
             {
@@ -435,26 +436,29 @@ namespace camera
 
             if( player !is null )
             {
+                auto user_data = player.GetUserData();
+
                 if( was_on )
                 {
-                    auto user_data = player.GetUserData();
-
                     // Epic shit hack to not mess up with the map's fog :/
                     array<int>@ fog_details = array<int>( user_data[ "pre_camera_fog" ] );
 
-                    NetworkMessage fog( MSG_ONE_UNRELIABLE, NetworkMessages::Fog, player.edict() );
-                        fog.WriteShort(0);
-                        fog.WriteByte( fog_details[0] );
-                        fog.WriteCoord(0);
-                        fog.WriteCoord(0);
-                        fog.WriteCoord(0);
-                        fog.WriteShort(0);
-                        fog.WriteByte( fog_details[1] ); // R
-                        fog.WriteByte( fog_details[2] ); // G
-                        fog.WriteByte( fog_details[3] ); // B
-                        fog.WriteShort( fog_details[4] ); // StartDist
-                        fog.WriteShort( fog_details[5] ); // EndDist
-                    fog.End();
+                    if( fog_details is null || fog_details.length() < 6 || fog_details[0] == 0 )
+                    {
+                        NetworkMessage fog( MSG_ONE_UNRELIABLE, NetworkMessages::Fog, player.edict() );
+                            fog.WriteShort(0);
+                            fog.WriteByte(0);
+                            fog.WriteCoord(0);
+                            fog.WriteCoord(0);
+                            fog.WriteCoord(0);
+                            fog.WriteShort(0);
+                            fog.WriteByte(0);
+                            fog.WriteByte(0);
+                            fog.WriteByte(0);
+                            fog.WriteShort(0);
+                            fog.WriteShort(0);
+                        fog.End();
+                    }
 
                     NetworkMessage mlight( MSG_ONE_UNRELIABLE, NetworkMessages::NetworkMessageType(12), player.edict() );
                     mlight.WriteByte( 0 );
@@ -463,7 +467,10 @@ namespace camera
 
                     g_PlayerFuncs.ScreenFade( player, Vector( 0, 200, 20 ), 1.0f, 0.5f, 100.0f, FFADE_MODULATE );
                     g_SoundSystem.EmitSoundDyn( player.edict(), CHAN_WEAPON, "cof/guns/camera/lever.ogg", VOL_NORM, ATTN_NORM, 0, PITCH_NORM );
+
                 }
+
+                user_data[ "camera_nightvision" ] = false;
             }
 
             m_nightvision = false;

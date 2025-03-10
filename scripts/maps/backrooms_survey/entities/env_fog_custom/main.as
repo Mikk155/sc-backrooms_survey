@@ -75,6 +75,10 @@ namespace fog
 
             auto user_data = player.GetUserData();
 
+            // Are we using the camera's night vision?
+            if( bool( user_data[ "camera_nightvision" ] ) )
+                continue;
+
             fog_state state = fog_state( user_data[ "env_fog_custom_state" ] );
 
             // Fog entity
