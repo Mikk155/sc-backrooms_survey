@@ -14,6 +14,8 @@
 
 namespace range_mic
 {
+    const int RANGE = 500;
+
     void on_playerthink( CHookModule@ pHookInfo )
     {
         if( pHookInfo.player !is null )
@@ -24,7 +26,9 @@ namespace range_mic
 
                 if( player !is null && player !is pHookInfo.player )
                 {
-                    g_EngineFuncs.Voice_SetClientListening( player.entindex(), pHookInfo.player.entindex(), !( player.pev.origin - pHookInfo.player.pev.origin ).Length() < 500 );
+                    bool in_range = !( ( player.pev.origin - pHookInfo.player.pev.origin ).Length() < RANGE );
+
+                    g_EngineFuncs.Voice_SetClientListening( player.entindex(), pHookInfo.player.entindex(), !in_range );
                 }
             }
         }
