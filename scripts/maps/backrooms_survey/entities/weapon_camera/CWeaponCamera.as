@@ -442,21 +442,18 @@ namespace camera
                     // Epic shit hack to not mess up with the map's fog :/
                     array<int>@ fog_details = array<int>( user_data[ "pre_camera_fog" ] );
 
-                    if( fog_details is null || fog_details.length() < 11 )
-                        fog_details = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 500 };
-
                     NetworkMessage fog( MSG_ONE_UNRELIABLE, NetworkMessages::Fog, player.edict() );
-                        fog.WriteShort( fog_details[0] );
-                        fog.WriteByte( fog_details[1] );
-                        fog.WriteCoord( fog_details[2] );
-                        fog.WriteCoord( fog_details[3] );
-                        fog.WriteCoord( fog_details[4] );
-                        fog.WriteShort( fog_details[5] );
-                        fog.WriteByte( fog_details[6] ); // R
-                        fog.WriteByte( fog_details[7] ); // G
-                        fog.WriteByte( fog_details[8] ); // B
-                        fog.WriteShort( fog_details[9] ); // StartDist
-                        fog.WriteShort( fog_details[10] ); // EndDist
+                        fog.WriteShort(0);
+                        fog.WriteByte( fog_details[0] );
+                        fog.WriteCoord(0);
+                        fog.WriteCoord(0);
+                        fog.WriteCoord(0);
+                        fog.WriteShort(0);
+                        fog.WriteByte( fog_details[1] ); // R
+                        fog.WriteByte( fog_details[2] ); // G
+                        fog.WriteByte( fog_details[3] ); // B
+                        fog.WriteShort( fog_details[4] ); // StartDist
+                        fog.WriteShort( fog_details[5] ); // EndDist
                     fog.End();
 
                     NetworkMessage mlight( MSG_ONE_UNRELIABLE, NetworkMessages::NetworkMessageType(12), player.edict() );

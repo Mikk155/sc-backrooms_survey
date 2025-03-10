@@ -127,3 +127,18 @@
     m_frags(integer) : "Frags per health state" : 100 : "0.1 is substracted every frame if the monster lost sight of his enemy. once reach 0 it will decrease 1 of health"
     m_maxspeed(integer) : "Maximun framerate speedup" : 3.0f : "This is the maximun value for framerate to set when the entity is getting lower and lower on health"
 ]
+
+@PointClass base( CToggleState ) color(196 195 192) = env_fog_custom : "Custom Fog Field"
+[
+    m_type(choices) : "Fog type" : 0 =
+    [
+        0: "All players on trigger"
+        1: "Activator only on trigger"
+        2: "Think on radious (Set radius)"
+    ]
+
+    m_radius(integer) : "Radius" : 1024 : "If m_type is 2. triggering the entity will toggle the state to on/off. players in within this range will get the fog if the entity is on."
+    m_color(color255) : "Fog Color (RGB)" : "0 0 0"
+    m_distance_start(integer) : "Start Distance" : 128
+    m_distance_end(integer) : "End Distance" : 1024
+]
