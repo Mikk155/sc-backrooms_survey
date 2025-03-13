@@ -40,12 +40,11 @@ namespace camera
     {
         g_Game .PrecacheModel( "sprites/glow01.spr" );
 
-        custom_precache( "sound/cof/guns/camera/photo.ogg" );
-        custom_precache( "sound/cof/guns/camera/charge.ogg" );
-        custom_precache( "sound/cof/guns/camera/lever.ogg" );
-
-        custom_precache( "sound/brp/camera/tap.ogg" );
+        custom_precache( "sound/brp/camera/charge.ogg" );
+        custom_precache( "sound/brp/camera/lever.ogg" );
+        custom_precache( "sound/brp/camera/photo.ogg" );
         custom_precache( "sound/brp/camera/safe.ogg" );
+        custom_precache( "sound/brp/camera/tap.ogg" );
 
         custom_precache( "models/brp/v_camera.mdl" );
 
@@ -97,8 +96,6 @@ namespace camera
         sprint_idle,
         sprint_from,
         melee,
-        iron_sight_to,
-        iron_sight_from,
         zoom_in,
         zoom_out,
         zoom_idle,

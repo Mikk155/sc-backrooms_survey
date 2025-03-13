@@ -18,6 +18,7 @@ namespace camera
 {
     class CWeaponCamera : ScriptBasePlayerWeaponEntity
     {
+        bool m_battery_flicked;
         bool m_nightvision;
         float m_nightvision_battery = MAX_BATTERY_CAPACITY;
         int m_nightvision_radius;
@@ -25,6 +26,9 @@ namespace camera
 
         sprint_state m_sprint_state;
         float m_flNextSprintTime;
+        float m_flNextSprintCheck;
+
+        float m_flNextReload;
 
         // If watching a picture. this is greater than the engine's time
         float watching_picture;
@@ -75,11 +79,11 @@ namespace camera
 
             player.set_m_szAnimExtension( "trip" );
 
-    //        pev.body = g_ModelFuncs.SetBodygroup( g_ModelFuncs.ModelIndex( "models/brp/v_camera.mdl" ), pev.body, 0, 0 );
-            self.SendWeaponAnim( camera_anim::draw, 0, pev.body );
+            pev.body = g_ModelFuncs.SetBodygroup( g_ModelFuncs.ModelIndex( "models/brp/v_camera.mdl" ), pev.body, 0, 0 );
+            self.SendWeaponAnim( camera_anim::draw_first, 0, pev.body );
 
             player.m_flNextAttack = 0;
-            self.m_flNextPrimaryAttack = self.m_flTimeWeaponIdle = self.m_flNextSecondaryAttack = g_Engine.time + 0.2;
+            m_flNextSprintCheck = self.m_flNextPrimaryAttack = self.m_flTimeWeaponIdle = self.m_flNextSecondaryAttack = g_Engine.time + 1.63f;
 
             return true;
         }
@@ -97,26 +101,66 @@ namespace camera
             if( self.m_flTimeWeaponIdle > g_Engine.time || player is null )
                 return;
 
-            switch( Math.RandomLong( 0, 3 ) )
+            if( m_nightvision )
             {
-                case 1:
-                    self.SendWeaponAnim( camera_anim::fidget1, 0, 0 );
-                break;
+                self.m_flTimeWeaponIdle = g_Engine.time + 2.0f;
 
-                case 2:
-                    self.SendWeaponAnim( camera_anim::fidget2, 0, 0 );
-                break;
+                float bat_percent = ( m_nightvision_battery / MAX_BATTERY_CAPACITY ) * 100;
 
-                case 3:
-                    self.SendWeaponAnim( camera_anim::fidget3, 0, 0 );
-                break;
+                battery_bodygroup bat_body = battery_bodygroup::four_lines;
 
-                default:
-                    self.SendWeaponAnim( camera_anim::idle, 0, 0 );
-                break;
+                if( bat_percent <= 20 )
+                {
+                    bat_body = battery_bodygroup::zero_lines;
+                }
+                else if( bat_percent <= 40 )
+                {
+                    bat_body = battery_bodygroup::one_line;
+                }
+                else if( bat_percent <= 60 )
+                {
+                    bat_body = battery_bodygroup::two_lines;
+                }
+                else if( bat_percent <= 80 )
+                {
+                    bat_body = battery_bodygroup::three_lines;
+                }
+
+                if( m_battery_flicked && bat_body != battery_bodygroup::zero_lines )
+                {
+                    bat_body--;
+                    self.m_flTimeWeaponIdle = g_Engine.time + 0.5f;
+                }
+
+                m_battery_flicked = !m_battery_flicked;
+
+                pev.body = g_ModelFuncs.SetBodygroup( g_ModelFuncs.ModelIndex( "models/brp/v_camera.mdl" ), pev.body, battery_bodygroup::group, bat_body );
+
+                self.SendWeaponAnim( camera_anim::zoom_idle, 0, pev.body );
             }
+            else
+            {
+                switch( Math.RandomLong( 0, 3 ) )
+                {
+                    case 1:
+                        self.SendWeaponAnim( camera_anim::fidget1, 0, 0 );
+                    break;
 
-            self.m_flTimeWeaponIdle = g_Engine.time + g_PlayerFuncs.SharedRandomFloat( player.random_seed, 2, 4 );
+                    case 2:
+                        self.SendWeaponAnim( camera_anim::fidget2, 0, 0 );
+                    break;
+
+                    case 3:
+                        self.SendWeaponAnim( camera_anim::fidget3, 0, 0 );
+                    break;
+
+                    default:
+                        self.SendWeaponAnim( camera_anim::idle, 0, 0 );
+                    break;
+                }
+
+                self.m_flTimeWeaponIdle = g_Engine.time + g_PlayerFuncs.SharedRandomFloat( player.random_seed, 2, 4 );
+            }
         }
 
         void picture_watch( CTextMenu@ menu, CBasePlayer@ player, int iSlot, const CTextMenuItem@ item )
@@ -240,42 +284,6 @@ namespace camera
                 }
             }
 
-            bool on_ground = ( ( player.pev.flags & FL_ONGROUND ) != 0 );
-
-            if( g_Engine.time > m_flNextSprintTime && on_ground )
-            {
-                if( m_sprint_state == sprint_state::sprint_no )
-                {
-                    if( player.pev.velocity.Make2D().Length() > 100 )
-                    {
-                        self.SendWeaponAnim( camera_anim::sprint_to, 0, 0 );
-                        m_sprint_state = sprint_state::sprint_start;
-                        m_flNextSprintTime = g_Engine.time + 0.3f;
-                        self.m_flTimeWeaponIdle = g_Engine.time + 1.0f;
-                    }
-                }
-                else if( m_sprint_state == sprint_state::sprint_start )
-                {
-                    self.SendWeaponAnim( camera_anim::sprint_idle, 0, 0 );
-                    m_sprint_state = sprint_state::sprint_loop;
-                    m_flNextSprintTime = g_Engine.time + 0.5f;
-                    self.m_flTimeWeaponIdle = g_Engine.time + 1.0f;
-                }
-                else if( player.pev.velocity.Make2D().Length() > 100 )
-                {
-                    self.SendWeaponAnim( camera_anim::sprint_idle, 0, 0 );
-                    m_flNextSprintTime = g_Engine.time + 0.65f;
-                    self.m_flTimeWeaponIdle = g_Engine.time + 1.0f;
-                }
-            }
-            else if( m_sprint_state == sprint_state::sprint_loop && ( player.pev.velocity.Make2D().Length() <= 100 || !on_ground ) )
-            {
-                self.SendWeaponAnim( camera_anim::sprint_from, 0, 0 );
-                m_sprint_state = sprint_state::sprint_no;
-                m_flNextSprintTime = g_Engine.time + 0.5f;
-                self.m_flTimeWeaponIdle = g_Engine.time + 1.0f;
-            }
-
             if( m_nightvision )
             {
                 if( m_nightvision_radius <= 100 ) {
@@ -325,6 +333,48 @@ namespace camera
                     self.m_iClip--;
                 }
             }
+            else if( g_Engine.time > m_flNextSprintCheck )
+            {
+                bool on_ground = ( ( player.pev.flags & FL_ONGROUND ) != 0 );
+
+                if( g_Engine.time > m_flNextSprintTime && on_ground )
+                {
+                    if( m_sprint_state == sprint_state::sprint_no )
+                    {
+                        if( player.pev.velocity.Make2D().Length() > 100 )
+                        {
+                            self.SendWeaponAnim( camera_anim::sprint_to, 0, 0 );
+                            m_sprint_state = sprint_state::sprint_start;
+                            m_flNextSprintTime = g_Engine.time + 0.3f;
+                            self.m_flTimeWeaponIdle = g_Engine.time + 1.0f;
+                        }
+                    }
+                    else if( m_sprint_state == sprint_state::sprint_start )
+                    {
+                        self.SendWeaponAnim( camera_anim::sprint_idle, 0, 0 );
+                        m_sprint_state = sprint_state::sprint_loop;
+                        m_flNextSprintTime = g_Engine.time + 0.5f;
+                        self.m_flTimeWeaponIdle = g_Engine.time + 1.0f;
+                    }
+                    else if( player.pev.velocity.Make2D().Length() > 100 )
+                    {
+                        self.SendWeaponAnim( camera_anim::sprint_idle, 0, 0 );
+                        m_flNextSprintTime = g_Engine.time + 0.65f;
+                        self.m_flTimeWeaponIdle = g_Engine.time + 1.0f;
+                    }
+                }
+                else if( m_sprint_state == sprint_state::sprint_loop && ( player.pev.velocity.Make2D().Length() <= 100 || !on_ground ) )
+                {
+                    self.SendWeaponAnim( camera_anim::sprint_from, 0, 0 );
+                    m_sprint_state = sprint_state::sprint_no;
+                    m_flNextSprintTime = g_Engine.time + 0.5f;
+                    self.m_flTimeWeaponIdle = g_Engine.time + 1.0f;
+                }
+            }
+            else if( m_sprint_state == sprint_state::sprint_loop )
+            {
+                m_sprint_state = sprint_state::sprint_no;
+            }
 
             BaseClass.ItemPreFrame();
         }
@@ -356,8 +406,7 @@ namespace camera
 
             player.SetAnimation( PLAYER_ATTACK1 );
 
-            g_SoundSystem.EmitSoundDyn( player.edict(), CHAN_WEAPON, "cof/guns/camera/photo.ogg", VOL_NORM, ATTN_NORM, 0, PITCH_NORM );
-            g_SoundSystem.EmitSoundDyn( player.edict(), CHAN_STATIC, "cof/guns/camera/charge.ogg", VOL_NORM, ATTN_NORM, 0, PITCH_NORM );
+            g_SoundSystem.EmitSoundDyn( player.edict(), CHAN_WEAPON, "brp/camera/photo.ogg", VOL_NORM, ATTN_NORM, 0, PITCH_NORM );
 
             // Find env_info entities
             auto user_data = player.GetUserData();
@@ -397,7 +446,7 @@ namespace camera
                 }
             }
 
-            self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 1.3f;
+            m_flNextSprintCheck = self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 1.3f;
         }
 
         void SecondaryAttack()
@@ -412,21 +461,24 @@ namespace camera
 
             if( m_nightvision )
             {
+                player.set_m_szAnimExtension( "crowbar" );
+                pev.body = g_ModelFuncs.SetBodygroup( g_ModelFuncs.ModelIndex( "models/brp/v_camera.mdl" ), pev.body, 0, 0 );
+                self.SendWeaponAnim( camera_anim::zoom_in, 0, pev.body );
+
                 NetworkMessage mlight( MSG_ONE_UNRELIABLE, NetworkMessages::NetworkMessageType(12), player.edict() );
                 mlight.WriteByte( 0 );
                 mlight.WriteString( "z" );
                 mlight.End();
 
-                self.SendWeaponAnim( camera_anim::holster );
                 g_PlayerFuncs.ScreenFade( player, Vector( 0, 200, 20 ), 1.0f, 0.5f, 100.0f, FFADE_STAYOUT | FFADE_MODULATE | FFADE_OUT );
-                g_SoundSystem.EmitSoundDyn( player.edict(), CHAN_WEAPON, "cof/guns/camera/charge.ogg", VOL_NORM, ATTN_NORM, 0, PITCH_NORM );
-                self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 1.0f;
+                g_SoundSystem.EmitSoundDyn( player.edict(), CHAN_WEAPON, "brp/camera/charge.ogg", VOL_NORM, ATTN_NORM, 0, PITCH_NORM );
+
+                m_flNextSprintCheck = self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 0.8f;
             }
             else
             {
                 shutdown_nightvision(true);
-                self.SendWeaponAnim( camera_anim::draw_first );
-                self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 1.63f;
+                m_flNextSprintCheck = self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 1.63f;
             }
         }
 
@@ -440,6 +492,10 @@ namespace camera
 
                 if( was_on )
                 {
+                    player.set_m_szAnimExtension( "trip" );
+                    pev.body = g_ModelFuncs.SetBodygroup( g_ModelFuncs.ModelIndex( "models/brp/v_camera.mdl" ), pev.body, 0, 0 );
+                    self.SendWeaponAnim( camera_anim::zoom_out, 0, pev.body );
+
                     // Epic shit hack to not mess up with the map's fog :/
                     array<int>@ fog_details = array<int>( user_data[ "env_fog_custom_values" ] );
 
@@ -467,8 +523,6 @@ namespace camera
                     mlight.End();
 
                     g_PlayerFuncs.ScreenFade( player, Vector( 0, 200, 20 ), 1.0f, 0.5f, 100.0f, FFADE_MODULATE );
-                    g_SoundSystem.EmitSoundDyn( player.edict(), CHAN_WEAPON, "cof/guns/camera/lever.ogg", VOL_NORM, ATTN_NORM, 0, PITCH_NORM );
-
                 }
 
                 user_data[ "camera_nightvision" ] = false;
@@ -476,11 +530,15 @@ namespace camera
 
             m_nightvision = false;
             m_nightvision_radius = 0;
+            m_flNextSprintCheck = g_Engine.time + 0.5f;
             m_nightvision_fog = MAX_FOG_DISTANCE;
         }
 
         void Reload()
         {
+            if( m_flNextReload > g_Engine.time )
+                return;
+
             auto player = m_hPlayer;
 
             if( self.m_iClip != 0 || player is null )
@@ -490,6 +548,7 @@ namespace camera
 
             if( ammo <= 0 )
             {
+                m_flNextSprintCheck = m_flNextReload = g_Engine.time + 0.5f;
                 g_SoundSystem.EmitSoundDyn( player.edict(), CHAN_WEAPON, "hlclassic/weapons/357_cock1.wav", VOL_NORM, ATTN_NORM, 0, PITCH_NORM );
                 return;
             }
@@ -499,11 +558,9 @@ namespace camera
             m_nightvision_battery = MAX_BATTERY_CAPACITY;
             player.m_rgAmmo( self.m_iPrimaryAmmoType, ammo );
 
-            self.SendWeaponAnim( camera_anim::shoot );
+            self.SendWeaponAnim( camera_anim::reload, 0, 0 );
 
-            g_SoundSystem.EmitSoundDyn( player.edict(), CHAN_WEAPON, "cof/guns/camera/lever.ogg", VOL_NORM, ATTN_NORM, 0, PITCH_NORM );
-
-            self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 1.3f;
+            m_flNextSprintCheck = m_flNextReload = self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 4.3f;
         }
     }
 }
