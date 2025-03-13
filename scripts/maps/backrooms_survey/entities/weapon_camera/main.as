@@ -44,7 +44,11 @@ namespace camera
         custom_precache( "sound/cof/guns/camera/charge.ogg" );
         custom_precache( "sound/cof/guns/camera/lever.ogg" );
 
-        custom_precache( "models/cof/camera/vwm.mdl" );
+        custom_precache( "sound/brp/camera/tap.ogg" );
+        custom_precache( "sound/brp/camera/safe.ogg" );
+
+        custom_precache( "models/brp/v_camera.mdl" );
+
         custom_precache( "models/cof/camera/wld.mdl" );
 
         custom_precache( "sprites/cof/wpn_sel01.spr" );
@@ -94,7 +98,23 @@ namespace camera
         sprint_from,
         melee,
         iron_sight_to,
-        iron_sight_from
+        iron_sight_from,
+        zoom_in,
+        zoom_out,
+        zoom_idle,
+        reload
+    };
+
+    enum battery_bodygroup
+    {
+        zero_lines = 0,
+        one_line,
+        two_lines,
+        three_lines,
+        four_lines,
+        group = 5,
+//        animation = camera_anim::zoom_idle
+        animation = 18
     };
 
     enum sprint_state

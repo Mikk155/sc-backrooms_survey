@@ -70,12 +70,12 @@ namespace camera
             if( !user_data.exists( "pictures" ) )
                 user_data[ "pictures" ] = dictionary();
 
-            player.pev.viewmodel = self.GetV_Model( "models/cof/camera/vwm.mdl" );
+            player.pev.viewmodel = self.GetV_Model( "models/brp/v_camera.mdl" );
             player.pev.weaponmodel = self.GetP_Model( "models/cof/camera/wld.mdl" );
 
             player.set_m_szAnimExtension( "trip" );
 
-    //        pev.body = g_ModelFuncs.SetBodygroup( g_ModelFuncs.ModelIndex( "models/cof/camera/vwm.mdl" ), pev.body, 0, 0 );
+    //        pev.body = g_ModelFuncs.SetBodygroup( g_ModelFuncs.ModelIndex( "models/brp/v_camera.mdl" ), pev.body, 0, 0 );
             self.SendWeaponAnim( camera_anim::draw, 0, pev.body );
 
             player.m_flNextAttack = 0;
