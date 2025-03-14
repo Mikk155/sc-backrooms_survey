@@ -447,6 +447,11 @@ namespace camera
             }
 
             m_flNextSprintCheck = self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 1.3f;
+
+            if( m_nightvision )
+			 {
+			 self.SendWeaponAnim( camera_anim::zoom_idle, 0, pev.body );
+			 }
         }
 
         void SecondaryAttack()
@@ -473,12 +478,12 @@ namespace camera
                 g_PlayerFuncs.ScreenFade( player, Vector( 0, 200, 20 ), 1.0f, 0.5f, 100.0f, FFADE_STAYOUT | FFADE_MODULATE | FFADE_OUT );
                 g_SoundSystem.EmitSoundDyn( player.edict(), CHAN_WEAPON, "brp/camera/charge.ogg", VOL_NORM, ATTN_NORM, 0, PITCH_NORM );
 
-                m_flNextSprintCheck = self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 0.8f;
+                m_flNextSprintCheck = self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + (16.0/33.0);
             }
             else
             {
                 shutdown_nightvision(true);
-                m_flNextSprintCheck = self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 1.63f;
+                m_flNextSprintCheck = self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + (16.0/30.0);
             }
         }
 
@@ -560,7 +565,7 @@ namespace camera
 
             self.SendWeaponAnim( camera_anim::reload, 0, 0 );
 
-            m_flNextSprintCheck = m_flNextReload = self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 4.3f;
+            m_flNextSprintCheck = m_flNextReload = self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + (81.0/30.0);
         }
     }
 }
