@@ -449,9 +449,9 @@ namespace camera
             m_flNextSprintCheck = self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + 1.3f;
 
             if( m_nightvision )
-			 {
-			 self.SendWeaponAnim( camera_anim::zoom_idle, 0, pev.body );
-			 }
+            {
+                self.SendWeaponAnim( camera_anim::zoom_idle, 0, pev.body );
+            }
         }
 
         void SecondaryAttack()
