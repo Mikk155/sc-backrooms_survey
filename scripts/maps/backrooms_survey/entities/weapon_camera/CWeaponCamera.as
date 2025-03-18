@@ -41,7 +41,7 @@ namespace camera
 
         void Spawn()
         {
-            g_EntityFuncs.SetModel( self, "models/cof/camera/wld.mdl" );
+            g_EntityFuncs.SetModel( self, "models/brp/w_camera.mdl" );
             self.m_iDefaultAmmo = 5;
             self.FallInit();
         }
@@ -75,7 +75,7 @@ namespace camera
                 user_data[ "pictures" ] = dictionary();
 
             player.pev.viewmodel = self.GetV_Model( "models/brp/v_camera.mdl" );
-            player.pev.weaponmodel = self.GetP_Model( "models/cof/camera/wld.mdl" );
+            player.pev.weaponmodel = self.GetP_Model( "models/brp/w_camera.mdl" );
 
             player.set_m_szAnimExtension( "trip" );
 
@@ -476,7 +476,6 @@ namespace camera
                 mlight.End();
 
                 g_PlayerFuncs.ScreenFade( player, Vector( 0, 200, 20 ), 1.0f, 0.5f, 100.0f, FFADE_STAYOUT | FFADE_MODULATE | FFADE_OUT );
-                g_SoundSystem.EmitSoundDyn( player.edict(), CHAN_WEAPON, "brp/camera/charge.ogg", VOL_NORM, ATTN_NORM, 0, PITCH_NORM );
 
                 m_flNextSprintCheck = self.m_flNextPrimaryAttack = self.m_flNextSecondaryAttack = self.m_flTimeWeaponIdle = g_Engine.time + (16.0/33.0);
             }
