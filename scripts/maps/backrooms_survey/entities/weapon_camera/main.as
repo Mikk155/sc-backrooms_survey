@@ -40,15 +40,11 @@ namespace camera
     {
         g_Game .PrecacheModel( "sprites/glow01.spr" );
 
-        custom_precache( "sound/brp/camera/charge.ogg" );
-        custom_precache( "sound/brp/camera/lever.ogg" );
         custom_precache( "sound/brp/camera/photo.ogg" );
-        custom_precache( "sound/brp/camera/safe.ogg" );
-        custom_precache( "sound/brp/camera/tap.ogg" );
 
         custom_precache( "models/brp/v_camera.mdl" );
 
-        custom_precache( "models/cof/camera/wld.mdl" );
+        custom_precache( "models/brp/w_camera.mdl" );
 
         custom_precache( "sprites/cof/wpn_sel01.spr" );
 
