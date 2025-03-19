@@ -43,11 +43,11 @@ namespace camera
         custom_precache( "sound/brp/camera/photo.ogg" );
 
         g_Game.PrecacheGeneric( "sound/brp/camera/charge.ogg" );
-		g_Game.PrecacheGeneric( "sound/brp/camera/lever.ogg" );
-		g_Game.PrecacheGeneric( "sound/brp/camera/safe.ogg" );
-		g_Game.PrecacheGeneric( "sound/brp/camera/tap.ogg" );
-		g_Game.PrecacheGeneric( "sound/brp/camera/in1.ogg" );
-		g_Game.PrecacheGeneric( "sound/brp/camera/out3.ogg" );
+	g_Game.PrecacheGeneric( "sound/brp/camera/lever.ogg" );
+	g_Game.PrecacheGeneric( "sound/brp/camera/safe.ogg" );
+	g_Game.PrecacheGeneric( "sound/brp/camera/tap.ogg" );
+	g_Game.PrecacheGeneric( "sound/brp/camera/in1.ogg" );
+	g_Game.PrecacheGeneric( "sound/brp/camera/out3.ogg" );
 
         custom_precache( "models/brp/v_camera.mdl" );
 
